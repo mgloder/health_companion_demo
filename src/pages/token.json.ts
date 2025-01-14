@@ -1,5 +1,9 @@
+import { ProxyAgent } from 'undici';
+const dispatcher = new ProxyAgent(process.env.HTTPS_PROXY)
+
 export async function GET() {
   const r = await fetch("https://api.openai.com/v1/realtime/sessions", {
+    dispatcher,
     method: "POST",
     headers: {
       Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
