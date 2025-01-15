@@ -22,7 +22,15 @@ This should start the console application on [http://localhost:3000](http://loca
 
 ## Docker Setup
 
-### Building and Running with Docker
+### Using Pre-built Image from GitHub Container Registry
+
+Pull and run the pre-built image:
+```bash
+docker pull ghcr.io/trustxai/ai-health-companion-demo:latest
+docker run -p 3000:3000 --env-file .env ghcr.io/trustxai/ai-health-companion-demo:latest
+```
+
+### Building Locally
 
 1. Build the Docker image:
 ```bash
