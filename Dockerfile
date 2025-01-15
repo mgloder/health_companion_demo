@@ -37,4 +37,5 @@ CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
 # Add these labels at the top of your Dockerfile
 LABEL org.opencontainers.image.source="https://github.com/MGloder/AI_Health"
 LABEL org.opencontainers.image.description="AI Health Companion Demo"
-LABEL org.opencontainers.image.licenses="MIT" 
+LABEL org.opencontainers.image.licenses="MIT"
+LABEL com.azure.container.registry="${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}" 

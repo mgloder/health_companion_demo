@@ -22,24 +22,24 @@ This should start the console application on [http://localhost:3000](http://loca
 
 ## Docker Setup
 
-### Using Pre-built Image from GitHub Container Registry
+### Using Pre-built Image from Azure Container Registry
 
 Pull and run the pre-built image:
 ```bash
-docker pull ghcr.io/trustxai/ai-health-companion-demo:latest
-docker run -p 3000:3000 --env-file .env ghcr.io/trustxai/ai-health-companion-demo:latest
+docker pull <azure-registry-server>/health-companion:latest
+docker run -p 3000:3000 --env-file .env <azure-registry-server>/health-companion:latest
 ```
 
 ### Building Locally
 
 1. Build the Docker image:
 ```bash
-docker build -t trustxai-app .
+docker build -t health-companion .
 ```
 
 2. Run the container:
 ```bash
-docker run -p 3000:3000 --env-file .env trustxai-app
+docker run -p 3000:3000 --env-file .env health-companion
 ```
 
 Or with environment variables:
@@ -48,7 +48,7 @@ docker run -p 3000:3000 \
   -e OPENAI_API_KEY="your-api-key" \
   -e HTTPS_PROXY="http://host.docker.internal:1087" \
   -e HTTP_PROXY="http://host.docker.internal:1087" \
-  trustxai-app
+  health-companion
 ```
 
 Note: If you're using a proxy on your host machine, use `host.docker.internal` instead of `127.0.0.1` to access the host machine from within the container.
