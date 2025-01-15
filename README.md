@@ -54,21 +54,3 @@ The previous version of this application that used WebSockets on the client (not
 ## License
 
 MIT
-
-## Docker Test
-
-To test Docker setup with a simple static website:
-
-```bash
-# Build the test image
-cd test
-docker build -t docker-test .
-
-# Run the test container
-docker run -d -p 8080:80 docker-test
-
-# Test the connection
-curl -v http://localhost:8080
-```
-
-You should see the test page at http://localhost:8080
