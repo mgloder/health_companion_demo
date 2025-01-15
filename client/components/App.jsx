@@ -133,6 +133,9 @@ export default function App() {
           <p>
             <Link to="/home">Go to home page</Link>
           </p>
+          <p>
+            <Link to="/chat">Go to Chat page</Link>
+          </p>
         </div>
       </nav>
       <main className="absolute top-16 left-0 right-0 bottom-0">
