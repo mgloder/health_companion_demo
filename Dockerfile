@@ -1,6 +1,11 @@
 # Use Node.js LTS (Long Term Support) as the base image
 FROM node:20-slim
 
+# Add these labels at the top
+LABEL org.opencontainers.image.source="https://github.com/mgloder/health_companion_demo"
+LABEL org.opencontainers.image.description="AI Health Companion Demo"
+LABEL org.opencontainers.image.licenses="MIT"
+
 # Set working directory
 WORKDIR /app
 
@@ -32,10 +37,4 @@ ENV PORT=3000
 EXPOSE 3000/tcp
 
 # Start the application in development mode for better logging
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
-
-# Add these labels at the top of your Dockerfile
-LABEL org.opencontainers.image.source="https://github.com/MGloder/AI_Health"
-LABEL org.opencontainers.image.description="AI Health Companion Demo"
-LABEL org.opencontainers.image.licenses="MIT"
-LABEL com.azure.container.registry="${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}" 
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"] 
