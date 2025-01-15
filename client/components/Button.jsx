@@ -1,3 +1,5 @@
+import PropTypes from 'prop-types';
+
 export default function Button({ icon, children, onClick, className }) {
   return (
     <button
@@ -9,3 +11,15 @@ export default function Button({ icon, children, onClick, className }) {
     </button>
   );
 }
+
+Button.propTypes = {
+  icon: PropTypes.node,
+  children: PropTypes.node,
+  onClick: PropTypes.func,
+  className: PropTypes.string
+};
+
+Button.defaultProps = {
+  className: '',
+  onClick: () => {},
+};
