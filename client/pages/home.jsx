@@ -1,5 +1,57 @@
 import { Link } from "react-router-dom";
 import { Calendar, ChevronRight } from 'react-feather';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Bar } from 'react-chartjs-2';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Title,
+  Tooltip,
+  Legend
+);
+
+export const options = {
+  responsive: true,
+  plugins: {
+    legend: {
+      display: false,
+    },
+    title: {
+      display: false,
+    },
+    scales: {
+      x: {
+        display: false
+      },
+      y: {
+        display: false
+      }
+    }
+  },
+};
+
+const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+export const data = {
+  labels,
+  datasets: [
+    {
+      label: 'Dataset 1',
+      data: [0.5, 1.0, 1.2, 1.5, 1.7, 1.9, 2.0],
+      backgroundColor: 'background: linear-gradient(blue, pink);',
+    }
+  ],
+};
 
 function Switch() {
   return (
@@ -9,7 +61,7 @@ function Switch() {
       </div>
       <div className="absolute left-1/2 top-1/2 z-20 m-auto flex -translate-x-1/2 -translate-y-1/2 transform">
         <div
-          className="inline-flex rounded-full border border-solid border-gray-250 bg-white p-1">
+          className="inline-flex rounded-full bg-white p-1">
           <div
             className="inline-flex rounded-full border border-solid bg-lime-300 p-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 17" aria-hidden="true"
@@ -32,8 +84,17 @@ function ExercisePanel({ className}) {
   return (
     <div className={className}>
       <div className="flex justify-between items-center">
-        <p className="text-sky-600">NO.<span className="text-xl">5</span><span className="text-gray-400 pl-2">Among Friends</span><ChevronRight className="inline-block h-4 w-4 pl-1"/></p>
+        <p className="text-sky-600">NO.<span className="text-xl">5</span><span className="text-gray-400 pl-2">Among Friends</span><ChevronRight
+          className="inline-block h-4 w-4 pl-1" /></p>
         <Calendar className="inline-block h-4 w-4" />
+      </div>
+      <Bar options={options} data={data} />
+      <div className="flex justify-between items-end text-xl mt-1 -mx-2 text-sky-600 leading-8">
+        <div className="grow bg-gradient-to-r from-sky-200 rounded-2xl px-4">9.2 <span className="text-base font-light">hours</span></div>
+        <div className="grow-0 inline-block">
+          <span className="text-base font-light mr-2">mbc earned</span>
+          <div className="inline-block w-16 rounded-2xl bg-sky-100 text-indigo-700 text-center">+8.2</div>
+        </div>
       </div>
     </div>
   );
