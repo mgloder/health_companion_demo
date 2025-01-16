@@ -66,9 +66,9 @@ function Switch() {
             className="inline-flex rounded-full border border-solid bg-lime-300 p-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 17" aria-hidden="true"
                  className="h-4 w-4 text-black">
-              <path fill="currentColor" fill-rule="evenodd"
+              <path fill="currentColor" fillRule="evenodd"
                     d="M11.726 1.273l2.387 2.394H.667V5h13.446l-2.386 2.393.94.94 4-4-4-4-.94.94zM.666 12.333l4 4 .94-.94L3.22 13h13.447v-1.333H3.22l2.386-2.394-.94-.94-4 4z"
-                    clip-rule="evenodd"></path>
+                    clipRule="evenodd"></path>
             </svg>
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function Home() {
                 <PhoneCall className="text-blue-600" />
               </div>
             </div>
-            <b className="text-lg font-bold text-indigo-700">Let's do a health checkin!</b>
+            <b className="text-lg font-bold text-indigo-700">Let&apos;s do a health checkin!</b>
             <ChevronRight className="inline-block ml-1 text-gray-200" />
             <ChevronRight className="inline-block -ml-4 text-white" />
           </div>
