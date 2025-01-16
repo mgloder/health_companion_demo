@@ -119,9 +119,9 @@ export default function Home() {
         <Link to="/chat">
           <div
             className="flex justify-between items-center bg-gradient-to-l from-sky-200 rounded-full h-16 overflow-hidden">
-            <div className="rounded-full border border-solid p-1 -ml-2">
+            <div className="rounded-full border-solid p-1 -ml-2">
               <div
-                className="rounded-full border border-solid border-8 border-sky-50 p-1 bg-gradient-to-r from-sky-400">
+                className="rounded-full border-solid border-8 border-sky-50 p-1 bg-gradient-to-r from-sky-400">
                 <PhoneCall className="text-blue-600" />
               </div>
             </div>
