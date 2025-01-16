@@ -1,10 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
+import { useSpring, animated, config } from "@react-spring/web";
 import callIcon from "../assets/call.svg";
 import endCallIcon from "../assets/end-call.svg";
-import { formatTime } from "../utils/utils.js";
+import { chatEasing, formatTime } from "../utils/utils.js";
 
 export default function Chat() {
+  const [styles, api] = useSpring(() => ({
+    from: { y: "-100%" },
+    config: {
+      duration: 1000, easing: chatEasing(),
+    },
+  }));
+
   const [speakingTime, setSpeakingTime] = useState(0);
   const intervalRef = useRef(null); // 用于存储计时器的引用
   const [dataChannel, setDataChannel] = useState(null);
@@ -85,21 +93,27 @@ export default function Chat() {
     };
   }, []);
 
+  useEffect(() => {
+    api.start({ y: "0%" }); // 滑入到屏幕中央
+  }, [api]);
+
   return (
-    <div className="h-screen relative bg-gradient-to-b from-blue-400 to-violet-200">
-      <div className="text-white text-4xl absolute left-[15%] top-1/4">
-        <h1>Hello Marry,</h1>
-        <h1>Let&apos;s check in.</h1>
+    <animated.div style={styles}>
+      <div className="h-screen relative bg-gradient-to-b from-blue-400 to-violet-200">
+        <div className="text-white text-4xl absolute left-[15%] top-1/4">
+          <h1>Hello Marry,</h1>
+          <h1>Let&apos;s check in.</h1>
+        </div>
+        <div className="absolute left-1/2 top-[70%] flex items-center -translate-x-1/2 -translate-y-1/2">
+          <img alt="call icon" className="inline-block" src={callIcon} />
+          <span className="ml-2">{formatTime(speakingTime)}</span>
+        </div>
+        <div className="absolute left-1/2 top-3/4 -translate-x-1/2">
+          <Link to="/message">
+            <img alt="end call" className="w-16" src={endCallIcon} />
+          </Link>
+        </div>
       </div>
-      <div className="absolute left-1/2 top-[70%] flex items-center -translate-x-1/2 -translate-y-1/2">
-        <img alt="call icon" className="inline-block" src={callIcon}/>
-        <span className="ml-2">{formatTime(speakingTime)}</span>
-      </div>
-      <div className="absolute left-1/2 top-3/4 -translate-x-1/2">
-        <Link to="/message">
-          <img alt="end call" className="w-16" src={endCallIcon} />
-        </Link>
-      </div>
-    </div>
-  )
+    </animated.div>
+  );
 }
