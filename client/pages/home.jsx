@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Calendar, ChevronRight } from 'react-feather';
+import { ArrowRight, Briefcase, Calendar, ChevronRight, Columns, PhoneCall, Shield } from "react-feather";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -8,8 +8,8 @@ import {
   Title,
   Tooltip,
   Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+} from "chart.js";
+import { Bar } from "react-chartjs-2";
 
 ChartJS.register(
   CategoryScale,
@@ -17,7 +17,7 @@ ChartJS.register(
   BarElement,
   Title,
   Tooltip,
-  Legend
+  Legend,
 );
 
 export const options = {
@@ -31,25 +31,25 @@ export const options = {
     },
     scales: {
       x: {
-        display: false
+        display: false,
       },
       y: {
-        display: false
-      }
-    }
+        display: false,
+      },
+    },
   },
 };
 
-const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 export const data = {
   labels,
   datasets: [
     {
-      label: 'Dataset 1',
+      label: "Dataset 1",
       data: [0.5, 1.0, 1.2, 1.5, 1.7, 1.9, 2.0],
-      backgroundColor: 'background: linear-gradient(blue, pink);',
-    }
+      backgroundColor: "background: linear-gradient(blue, pink);",
+    },
   ],
 };
 
@@ -80,17 +80,19 @@ function Switch() {
   );
 }
 
-function ExercisePanel({ className}) {
+function ExercisePanel({ className }) {
   return (
     <div className={className}>
       <div className="flex justify-between items-center">
-        <p className="text-sky-600">NO.<span className="text-xl">5</span><span className="text-gray-400 pl-2">Among Friends</span><ChevronRight
-          className="inline-block h-4 w-4 pl-1" /></p>
+        <p className="text-sky-600">NO.<span className="text-xl">5</span><span className="text-gray-400 pl-2">Among Friends</span>
+          <ChevronRight className="inline-block h-4 w-4 pl-1" />
+        </p>
         <Calendar className="inline-block h-4 w-4" />
       </div>
       <Bar options={options} data={data} />
       <div className="flex justify-between items-end text-xl mt-1 -mx-2 text-sky-600 leading-8">
-        <div className="grow bg-gradient-to-r from-sky-200 rounded-2xl px-4">9.2 <span className="text-base font-light">hours</span></div>
+        <div className="grow bg-gradient-to-r from-sky-200 rounded-2xl px-4">9.2 <span
+          className="text-base font-light">hours</span></div>
         <div className="grow-0 inline-block">
           <span className="text-base font-light mr-2">mbc earned</span>
           <div className="inline-block w-16 rounded-2xl bg-sky-100 text-indigo-700 text-center">+8.2</div>
@@ -112,7 +114,47 @@ export default function Home() {
         </Link>
       </div>
       <Switch />
-      <ExercisePanel className="mt-1 px-12"/>
+      <ExercisePanel className="mt-1 px-12" />
+      <div className="mt-12 px-12">
+        <Link to="/chat">
+          <div
+            className="flex justify-between items-center bg-gradient-to-l from-sky-200 rounded-full h-16 overflow-hidden">
+            <div className="rounded-full border border-solid p-1 -ml-2">
+              <div
+                className="rounded-full border border-solid border-8 border-sky-50 p-1 bg-gradient-to-r from-sky-400">
+                <PhoneCall className="text-blue-600" />
+              </div>
+            </div>
+            <b className="text-lg font-bold text-indigo-700">Let's do a health checkin!</b>
+            <ChevronRight className="inline-block ml-1 text-gray-200" />
+            <ChevronRight className="inline-block -ml-4 text-white" />
+          </div>
+        </Link>
+        <div
+          className="flex items-center justify-between bg-gradient-to-l from-sky-100 rounded-full h-12 mt-4 mr-8">
+          <div className="rounded-full p-1 mr-2 bg-black">
+            <Shield className="text-lime-300" />
+          </div>
+          <p className="text-base">Eating tips for the Winter</p>
+          <ArrowRight className="inline-block -ml-4 text-blue-600" />
+        </div>
+        <div
+          className="flex items-center bg-gradient-to-l from-sky-100 rounded-full h-12 mt-4 mr-8">
+          <div className="rounded-full p-1 mr-2 bg-black">
+            <Columns className="text-fuchsia-300" />
+          </div>
+          <p className="text-base">exercise at office desk ?</p>
+          <ArrowRight className="inline-block text-blue-600" />
+        </div>
+        <div
+          className="flex items-center bg-gradient-to-l from-sky-100 rounded-full h-12 mt-4 mr-8">
+          <div className="rounded-full p-1 mr-2 bg-black">
+            <Briefcase className="text-lime-300" />
+          </div>
+          <p className="text-base">See latest offers for tax-deductible insurance</p>
+          <ArrowRight className="inline-block text-blue-600" />
+        </div>
+      </div>
     </>
   );
 }
