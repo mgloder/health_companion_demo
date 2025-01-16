@@ -1,6 +1,12 @@
 import Fastify from "fastify";
 import FastifyVite from "@fastify/vite";
 import fastifyEnv from "@fastify/env";
+import FastifyStatic from "@fastify/static";
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 import { ProxyAgent } from 'undici';
 const dispatcher = new ProxyAgent('http://127.0.0.1:1087')
@@ -32,6 +38,11 @@ await server.register(FastifyVite, {
 });
 
 await server.vite.ready();
+
+await server.register(FastifyStatic, {
+  root: path.join(__dirname, 'public'),
+  prefix: '/'
+});
 
 // Server-side API route to return an ephemeral realtime session token
 server.get("/token", async () => {
