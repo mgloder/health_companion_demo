@@ -1,9 +1,12 @@
-import { PhoneCall } from "react-feather";
-import endCall from "../assets/end-call.svg";
-import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import callIcon from "../assets/call.svg";
+import endCallIcon from "../assets/end-call.svg";
+import { formatTime } from "../utils/utils.js";
 
 export default function Chat() {
+  const [speakingTime, setSpeakingTime] = useState(0);
+  const intervalRef = useRef(null); // 用于存储计时器的引用
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
@@ -57,6 +60,10 @@ export default function Chat() {
       } catch (error) {
         console.error("启动会话失败:", error);
       }
+
+      intervalRef.current = setInterval(() => {
+        setSpeakingTime((prevTime) => prevTime + 1); // 每秒增加 1
+      }, 1000);
     };
 
     startSession();
@@ -71,6 +78,10 @@ export default function Chat() {
       }
       setDataChannel(null);
       peerConnection.current = null;
+
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
     };
   }, []);
 
@@ -81,12 +92,12 @@ export default function Chat() {
         <h1>Let&apos;s check in.</h1>
       </div>
       <div className="absolute left-1/2 top-[70%] flex items-center -translate-x-1/2 -translate-y-1/2">
-        <PhoneCall className="inline-block -ml-3" />
-        <span className="ml-2">00:01:35</span>
+        <img alt="call icon" className="inline-block" src={callIcon}/>
+        <span className="ml-2">{formatTime(speakingTime)}</span>
       </div>
       <div className="absolute left-1/2 top-3/4 -translate-x-1/2">
         <Link to="/message">
-          <img alt="end call" className="w-16" src={endCall} />
+          <img alt="end call" className="w-16" src={endCallIcon} />
         </Link>
       </div>
     </div>
