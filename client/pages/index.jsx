@@ -10,7 +10,15 @@ import {
   Legend,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import marryProfile from '../assets/marry-profile.svg';
+import marryProfileIcon from "../assets/marry-profile.svg";
+import arrowsExchangeIcon from "../assets/arrows-exchange.svg";
+import calendarIcon from "../assets/calendar.svg";
+import rightArrowIcon from "../assets/right-arrow.svg";
+import healthShieldIcon from "../assets/health-shield.svg";
+import bookIcon from "../assets/book.svg";
+import shopBagIcon from "../assets/shop-bag.svg";
+import callIcon from "../assets/call.svg";
+import PhoneCallIcon from "../components/PhoneCallIcon.jsx";
 
 
 ChartJS.register(
@@ -55,6 +63,19 @@ export const data = {
   ],
 };
 
+function Header() {
+  return (
+    <div className="flex p-4 justify-between">
+      <h1 className="text-4xl inline-block self-start">Sisyphus</h1>
+      <Link to="/profile" className="self-end">
+        <img className="inline-block size-10 rounded-full ring-2 ring-white"
+             src={marryProfileIcon}
+             alt="" />
+      </Link>
+    </div>
+  );
+}
+
 function Switch() {
   return (
     <div className="relative flex p-4 justify-center gap-4">
@@ -66,12 +87,7 @@ function Switch() {
           className="inline-flex rounded-full bg-white p-1">
           <div
             className="inline-flex rounded-full border border-solid bg-lime-300 p-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 17" aria-hidden="true"
-                 className="h-4 w-4 text-black">
-              <path fill="currentColor" fillRule="evenodd"
-                    d="M11.726 1.273l2.387 2.394H.667V5h13.446l-2.386 2.393.94.94 4-4-4-4-.94.94zM.666 12.333l4 4 .94-.94L3.22 13h13.447v-1.333H3.22l2.386-2.394-.94-.94-4 4z"
-                    clipRule="evenodd"></path>
-            </svg>
+            <img alt="exchage" src={arrowsExchangeIcon} />
           </div>
         </div>
       </div>
@@ -86,19 +102,57 @@ function ExercisePanel({ className }) {
   return (
     <div className={className}>
       <div className="flex justify-between items-center">
-        <p className="text-sky-600">NO.<span className="text-xl">5</span><span className="text-gray-400 pl-2">Among Friends</span>
+        <p className="text-sis-blue">NO.<span className="text-xl">5</span><span className="text-sis-gray pl-2">Among Friends</span>
           <ChevronRight className="inline-block h-4 w-4 pl-1" />
         </p>
-        <Calendar className="inline-block h-4 w-4" />
+        <img className="inline-block" src={calendarIcon} alt="calendar" sizes={28} />
       </div>
       <Bar options={options} data={data} />
-      <div className="flex justify-between items-end text-xl mt-1 -mx-2 text-sky-600 leading-8">
-        <div className="grow bg-gradient-to-r from-sky-200 rounded-2xl px-4">9.2 <span
+      <div className="flex justify-between items-end text-xl mt-1 -mx-2 text-sis-blue leading-8">
+        <div className="grow bg-gradient-to-r from-sis-blue-100 rounded-2xl px-4">9.2 <span
           className="text-base font-light">hours</span></div>
         <div className="grow-0 inline-block">
           <span className="text-base font-light mr-2">mbc earned</span>
-          <div className="inline-block w-16 rounded-2xl bg-sky-100 text-indigo-700 text-center">+8.2</div>
+          <div className="inline-block w-16 rounded-2xl bg-sis-blue-300 text-sis-purple text-center">
+            <span className="mr-1">+</span>8.2
+          </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function Checkin() {
+  return (
+    <Link to="/chat">
+      <div
+        className="flex items-center bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-16 overflow-hidden">
+        <div className="rounded-full border border-solid border-sis-blue p-1 -ml-2">
+          <div
+            className="rounded-full border-solid border-2 border-sky-50 p-2 bg-gradient-to-r from-sky-400">
+            <PhoneCallIcon className="text-blue-600 fill-current" width={18} height={18} />
+          </div>
+        </div>
+        <span className="text-lg font-bold text-sis-purple ml-1">Let&apos;s do a health checkin!</span>
+        <div className="ml-auto mr-2">
+          <ChevronRight className="inline-block ml-1 text-gray-200" />
+          <ChevronRight className="inline-block -ml-4 text-white" />
+        </div>
+      </div>
+    </Link>
+  );
+}
+
+function RecommendItem({ icon, text }) {
+  return (
+    <div
+      className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-12">
+      <div className="rounded-full p-1 mr-2 h-7 w-7 bg-black">
+        <img src={icon} alt="text" />
+      </div>
+      <p className="max-w-52">{text}</p>
+      <div className="inline-block ml-auto mr-2 rounded-full bg-white p-2">
+        <img src={rightArrowIcon} alt="click" />
       </div>
     </div>
   );
@@ -107,55 +161,23 @@ function ExercisePanel({ className }) {
 export default function Index() {
   return (
     <>
-      <div className="flex p-4 justify-between">
-        <h1 className="text-4xl inline-block self-start">Sisyphus</h1>
-        <Link to="/profile" className="self-end">
-          <img className="inline-block size-10 rounded-full ring-2 ring-white"
-               src={marryProfile}
-               alt="" />
-        </Link>
-      </div>
+      <Header />
       <Switch />
       <ExercisePanel className="mt-1 px-12" />
       <div className="mt-12 px-12">
-        <Link to="/chat">
-          <div
-            className="flex justify-between items-center bg-gradient-to-l from-sky-200 rounded-full h-16 overflow-hidden">
-            <div className="rounded-full border-solid p-1 -ml-2">
-              <div
-                className="rounded-full border-solid border-8 border-sky-50 p-1 bg-gradient-to-r from-sky-400">
-                <PhoneCall className="text-blue-600" />
-              </div>
-            </div>
-            <b className="text-lg font-bold text-indigo-700">Let&apos;s do a health checkin!</b>
-            <ChevronRight className="inline-block ml-1 text-gray-200" />
-            <ChevronRight className="inline-block -ml-4 text-white" />
-          </div>
-        </Link>
-        <div
-          className="flex items-center justify-between bg-gradient-to-l from-sky-100 rounded-full h-12 mt-4 mr-8">
-          <div className="rounded-full p-1 mr-2 bg-black">
-            <Shield className="text-lime-300" />
-          </div>
-          <p className="text-base">Eating tips for the Winter</p>
-          <ArrowRight className="inline-block -ml-4 text-blue-600" />
-        </div>
-        <div
-          className="flex items-center bg-gradient-to-l from-sky-100 rounded-full h-12 mt-4 mr-8">
-          <div className="rounded-full p-1 mr-2 bg-black">
-            <Columns className="text-fuchsia-300" />
-          </div>
-          <p className="text-base">exercise at office desk ?</p>
-          <ArrowRight className="inline-block text-blue-600" />
-        </div>
-        <div
-          className="flex items-center bg-gradient-to-l from-sky-100 rounded-full h-12 mt-4 mr-8">
-          <div className="rounded-full p-1 mr-2 bg-black">
-            <Briefcase className="text-lime-300" />
-          </div>
-          <p className="text-base">See latest offers for tax-deductible insurance</p>
-          <ArrowRight className="inline-block text-blue-600" />
-        </div>
+        <Checkin />
+        <RecommendItem
+          icon={healthShieldIcon}
+          text={"Eating tips for the Winter"}
+        />
+        <RecommendItem
+          icon={bookIcon}
+          text={"Exercise at office desk ?"}
+        />
+        <RecommendItem
+          icon={shopBagIcon}
+          text={"See latest offers for tax-deductible insurance"}
+        />
       </div>
     </>
   );
