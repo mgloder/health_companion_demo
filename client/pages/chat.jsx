@@ -1,5 +1,6 @@
 import { PhoneCall } from "react-feather";
 import endCall from "../assets/end-call.svg";
+import { Link } from "react-router-dom";
 
 export default function Chat() {
   return (
@@ -13,7 +14,9 @@ export default function Chat() {
         <span className="ml-2">00:01:35</span>
       </div>
       <div className="absolute left-1/2 top-3/4 -translate-x-1/2">
-        <img alt="end call" className="w-16" src={endCall} />
+        <Link to="/message">
+          <img alt="end call" className="w-16" src={endCall} />
+        </Link>
       </div>
     </div>
   )
