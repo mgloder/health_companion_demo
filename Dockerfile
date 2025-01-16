@@ -32,9 +32,10 @@ ENV HTTP_PROXY=""
 ENV NO_PROXY="localhost,127.0.0.1,0.0.0.0"
 ENV HOST="0.0.0.0"
 ENV PORT=3000
+ENV DEBUG="*"
 
 # Expose the port your app runs on
 EXPOSE 3000/tcp
 
-# Start the application in development mode for better logging
-CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"] 
+# Start the application with console logging
+CMD ["npm", "run", "start"] 
