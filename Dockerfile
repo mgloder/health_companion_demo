@@ -21,9 +21,6 @@ COPY . .
 # Build the application
 RUN npm run build
 
-# Install debugging tools
-RUN apt-get update && apt-get install -y curl net-tools
-
 # Set environment variables
 ENV NODE_ENV=production
 ENV OPENAI_API_KEY=""

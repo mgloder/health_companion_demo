@@ -30,19 +30,24 @@ const schema = {
   },
 };
 
+// Register static file serving first
+await server.register(FastifyStatic, {
+  root: path.join(__dirname, 'public'),
+  prefix: '/public/',
+  decorateReply: false // Important: prevents route conflicts
+});
+
+// Then register environment variables
 await server.register(fastifyEnv, { dotenv: true, schema });
 
+// Finally register Vite
 await server.register(FastifyVite, {
   root: import.meta.url,
   renderer: "@fastify/react",
+  dev: process.env.NODE_ENV !== 'production'
 });
 
 await server.vite.ready();
-
-await server.register(FastifyStatic, {
-  root: path.join(__dirname, 'public'),
-  prefix: '/'
-});
 
 // Server-side API route to return an ephemeral realtime session token
 server.get("/token", async () => {
