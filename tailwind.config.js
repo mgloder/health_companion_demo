@@ -3,6 +3,22 @@ export default {
   content: ["./client/index.html", "./client/**/*.{jsx,tsx}"],
   theme: {
     extend: {
+      animation: {
+        'sis-ripple': 'ripple 1s ease-out',
+        'blink-1': 'blink 1.5s infinite',
+        'blink-2': 'blink 1.5s infinite 0.5s',
+        'blink-3': 'blink 1.5s infinite 1s',
+      },
+      keyframes: {
+        ripple: {
+          '0%': { transform: 'scale(1)', opacity: 1 },
+          '100%': { transform: 'scale(1.2)', opacity: 0 },
+        },
+        blink: {
+          '0%, 100%': { opacity: '0' },
+          '50%': { opacity: '1' },
+        },
+      },
       colors: {
         "sis-blue": {
           DEFAULT: "#3660F9",

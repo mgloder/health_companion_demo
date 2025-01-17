@@ -23,12 +23,6 @@ export default function Chat() {
     },
   }));
 
-  const [callingStyle, callingApi] = useSpring(() => ({
-    from: { scale: 1, opacity: 1 },
-  }));
-
-  const [audio, setAudio] = useState(null);
-
   const [speakingTime, setSpeakingTime] = useState(0);
   const [isSessionActive, setIsSessionActive] = useState(CONNECTION_STATUS.DISCONNECTED);
   const [events, setEvents] = useState([]);
@@ -37,11 +31,6 @@ export default function Chat() {
   const peerConnection = useRef(null);
 
   async function startSession() {
-    if (audio) {
-      audio.pause();
-      audio.remove();
-    }
-
     try {
       const tokenResponse = await fetch("/token");
       const data = await tokenResponse.json();
@@ -90,14 +79,6 @@ export default function Chat() {
       console.error("启动会话失败:", error);
     } finally {
       setIsSessionActive(CONNECTION_STATUS.CONNECTING);
-      callingApi.start({
-        to: [
-          { scale: 1.2, opacity: 0.8 },
-          { scale: 1, opacity: 1 },
-        ],
-        loop: true, // 循环播放
-        config: { tension: 300, friction: 10 },
-      });
       intervalRef.current = setInterval(() => {
         setSpeakingTime((prevTime) => prevTime + 1); // 每秒增加 1
       }, 1000);
@@ -122,21 +103,6 @@ export default function Chat() {
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
-      }
-    };
-  }, []);
-
-  useEffect(() => {
-    const audioElement = new Audio('../assets/telephone-calling.mp3');
-    audioElement.loop = true;
-    audioElement.play();
-    setAudio(audioElement);
-
-    // 组件卸载时清理
-    return () => {
-      if (audioElement) {
-        audioElement.pause();
-        audioElement.remove();
       }
     };
   }, []);
@@ -190,23 +156,11 @@ export default function Chat() {
             </>
           )}
           {isSessionActive === CONNECTION_STATUS.CONNECTING && (
-            <div className="mt-8 flex justify-center">
-              <animated.div
-                style={{
-                  width: "100px",
-                  height: "100px",
-                  backgroundColor: "#4CAF50",
-                  borderRadius: "50%",
-                  display: "flex",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  color: "white",
-                  fontSize: "16px",
-                  ...callingStyle,
-                }}
-              >
-                Calling...
-              </animated.div>
+            <div className="text-white text-xl -mt-4">
+              Calling
+              <span className="animate-blink-1">.</span>
+              <span className="animate-blink-2">.</span>
+              <span className="animate-blink-3">.</span>
             </div>
           )}
           {isSessionActive === CONNECTION_STATUS.DISCONNECTED && (
@@ -217,7 +171,6 @@ export default function Chat() {
               <div className="mt-2">Accept</div>
             </>
           )}
-
         </div>
 
       </div>
