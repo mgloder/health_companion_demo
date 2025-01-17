@@ -90,6 +90,7 @@ server.get("/token", async (request, reply) => {
       body: JSON.stringify({
         model: "gpt-4o-realtime-preview-2024-12-17",
         voice: "coral",
+        instructions: "你是一个友好的AI助理，请你后续都用中文回复"
       }),
     });
 
