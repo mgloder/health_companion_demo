@@ -4,7 +4,7 @@ export default {
   theme: {
     extend: {
       animation: {
-        'sis-ripple': 'ripple 1s ease-out',
+        'sis-ripple': 'ripple 1s cubic-bezier(0, 0, 0.2, 1) infinite',
         'blink-1': 'blink 1.5s infinite',
         'blink-2': 'blink 1.5s infinite 0.5s',
         'blink-3': 'blink 1.5s infinite 1s',
@@ -12,7 +12,7 @@ export default {
       keyframes: {
         ripple: {
           '0%': { transform: 'scale(1)', opacity: 1 },
-          '100%': { transform: 'scale(1.2)', opacity: 0 },
+          '100%': { transform: 'scale(2)', opacity: 0 },
         },
         blink: {
           '0%, 100%': { opacity: '0' },

@@ -29,6 +29,7 @@ export default function Chat() {
   const intervalRef = useRef(null); // 用于存储计时器的引用
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
+  const audioElement = useRef(null);
 
   async function startSession() {
     try {
@@ -156,11 +157,19 @@ export default function Chat() {
             </>
           )}
           {isSessionActive === CONNECTION_STATUS.CONNECTING && (
-            <div className="text-white text-xl -mt-4">
-              Calling
-              <span className="animate-blink-1">.</span>
-              <span className="animate-blink-2">.</span>
-              <span className="animate-blink-3">.</span>
+            <div className="w-16">
+              <div className="text-white text-xl">
+                Calling
+                <span className="animate-blink-1">.</span>
+                <span className="animate-blink-2">.</span>
+                <span className="animate-blink-3">.</span>
+              </div>
+              <button className="mt-8">
+                <Link to="/">
+                  <img alt="end call" className="w-16" src={endCallIcon} />
+                </Link>
+                <div className="mt-2">Decline</div>
+              </button>
             </div>
           )}
           {isSessionActive === CONNECTION_STATUS.DISCONNECTED && (
