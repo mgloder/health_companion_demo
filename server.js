@@ -4,7 +4,7 @@ import fastifyEnv from "@fastify/env";
 import FastifyStatic from "@fastify/static";
 import path from "path";
 import { fileURLToPath } from "url";
-import { ProxyAgent } from "undici";
+import { Agent, ProxyAgent } from "undici";
 import pino from 'pino';
 
 // Configure logger
@@ -24,7 +24,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize proxy agent
-const dispatcher = new ProxyAgent("http://127.0.0.1:1087");
+const dispatcher =  process.env.NODE_ENV === 'development' ? new ProxyAgent("http://127.0.0.1:7890") : new Agent();
 logger.debug('Proxy agent initialized');
 
 // Fastify + React + Vite configuration
@@ -81,7 +81,7 @@ server.get("/token", async (request, reply) => {
   try {
     logger.debug('Making request to OpenAI...');
     const r = await fetch("https://api.openai.com/v1/realtime/sessions", {
-      dispatcher: process.env.NODE_ENV !== "production" ? dispatcher : null,
+      dispatcher,
       method: "POST",
       headers: {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
