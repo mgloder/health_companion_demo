@@ -7,6 +7,12 @@ import { chatEasing, formatTime } from "../utils/utils.js";
 import VoiceBg from "../components/VoiceBg.jsx";
 import PhoneCallIcon from "../components/PhoneCallIcon.jsx";
 
+const CONNECTION_STATUS = {
+  DISCONNECTED: 'disconnected',
+  CONNECTING: 'connecting',
+  CONNECTED: 'connected',
+};
+
 export default function Chat() {
   const [styles, api] = useSpring(() => ({
     from: { y: "-100%" },
@@ -15,8 +21,9 @@ export default function Chat() {
     },
   }));
 
-  const [isSessionActive, setIsSessionActive] = useState(false);
   const [speakingTime, setSpeakingTime] = useState(0);
+  const [isSessionActive, setIsSessionActive] = useState(CONNECTION_STATUS.DISCONNECTED);
+  const [events, setEvents] = useState([]);
   const intervalRef = useRef(null); // 用于存储计时器的引用
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
@@ -70,7 +77,7 @@ export default function Chat() {
     } catch (error) {
       console.error("启动会话失败:", error);
     } finally {
-      setIsSessionActive(true);
+      setIsSessionActive(CONNECTION_STATUS.CONNECTING);
       intervalRef.current = setInterval(() => {
         setSpeakingTime((prevTime) => prevTime + 1); // 每秒增加 1
       }, 1000);
@@ -85,7 +92,7 @@ export default function Chat() {
       peerConnection.current.close();
     }
 
-    setIsSessionActive(false);
+    setIsSessionActive(CONNECTION_STATUS.DISCONNECTED);
     setDataChannel(null);
     peerConnection.current = null;
   }
@@ -103,6 +110,25 @@ export default function Chat() {
     api.start({ y: "0%" });
   }, [api]);
 
+  // Attach event listeners to the data channel when a new one is created
+  useEffect(() => {
+    if (dataChannel) {
+      // Append new server events to the list
+      dataChannel.addEventListener("message", (e) => {
+        setEvents((prev) => {
+          console.log('Event: ', e.data);
+          return [JSON.parse(e.data), ...prev];
+        });
+      });
+
+      // Set session active when the data channel is opened
+      dataChannel.addEventListener("open", () => {
+        setIsSessionActive(CONNECTION_STATUS.CONNECTED);
+        setEvents([]);
+      });
+    }
+  }, [dataChannel]);
+
   return (
     <animated.div style={styles}>
       <div className="h-screen relative bg-gradient-to-b from-blue-400 to-violet-200">
@@ -115,7 +141,7 @@ export default function Chat() {
         </div>
         <div
           className="absolute left-1/2 top-[70%] -translate-x-1/2 -translate-y-1/2 flex justify-center w-20 flex-wrap">
-          {isSessionActive ? (
+          {isSessionActive !== CONNECTION_STATUS.DISCONNECTED ? (
             <>
               <div className="flex items-center ">
                 <img alt="call icon" className="inline-block" src={callIcon} />
