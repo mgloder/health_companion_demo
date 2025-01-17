@@ -67,6 +67,14 @@ logger.debug('Vite plugin registered');
 await server.vite.ready();
 logger.info('Vite is ready');
 
+server.get("/api-env", async (request, reply) => {
+  return {
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+  };
+});
+
 // Server-side API route to return an ephemeral realtime session token
 server.get("/token", async (request, reply) => {
   logger.info('Token request received');
