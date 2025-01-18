@@ -20,6 +20,9 @@ export default {
         },
       },
       colors: {
+        "sis-black": {
+          400: "#333333",
+        },
         "sis-blue": {
           DEFAULT: "#3660F9",
           50: "#F9F9F9",
@@ -29,11 +32,16 @@ export default {
         },
         "sis-cyan": {
           50: "#F2F2F2B8",
+          60: "#F2F2F2",
           100: "#D8E4FF67",
+          110: "#F0F0F066",
           150: "#F6F6F696",
           200: "#D2DFFF",
         },
-        "sis-gray": "#717070",
+        "sis-gray": {
+          DEFAULT: "#717070",
+          100: "#C7C7C7"
+        },
         "sis-purple": "#102A8A",
       },
       fontFamily: {

@@ -1,15 +1,10 @@
 import { Link } from "react-router-dom";
-import { ArrowRight, Briefcase, Calendar, ChevronRight, Columns, PhoneCall, Shield } from "react-feather";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
+import { ChevronRight } from "react-feather";
+
+import PhoneCallIcon from "../components/PhoneCallIcon.jsx";
+import FooterInput from "../components/FooterInput.jsx";
+import ChevronRightIcon from "../components/ChevronRightIcon.jsx";
+
 import marryProfileIcon from "../assets/marry-profile.svg";
 import arrowsExchangeIcon from "../assets/arrows-exchange.svg";
 import calendarIcon from "../assets/calendar.svg";
@@ -17,51 +12,8 @@ import rightArrowIcon from "../assets/right-arrow.svg";
 import healthShieldIcon from "../assets/health-shield.svg";
 import bookIcon from "../assets/book.svg";
 import shopBagIcon from "../assets/shop-bag.svg";
-import callIcon from "../assets/call.svg";
-import PhoneCallIcon from "../components/PhoneCallIcon.jsx";
+import ExerciseChart from "../components/ExerciseChart.jsx";
 
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-);
-
-export const options = {
-  responsive: true,
-  plugins: {
-    legend: {
-      display: false,
-    },
-    title: {
-      display: false,
-    },
-    scales: {
-      x: {
-        display: false,
-      },
-      y: {
-        display: false,
-      },
-    },
-  },
-};
-
-const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-
-export const data = {
-  labels,
-  datasets: [
-    {
-      label: "Dataset 1",
-      data: [0.5, 1.0, 1.2, 1.5, 1.7, 1.9, 2.0],
-      backgroundColor: "background: linear-gradient(blue, pink);",
-    },
-  ],
-};
 
 function Header() {
   return (
@@ -101,14 +53,16 @@ function Switch() {
 function ExercisePanel({ className }) {
   return (
     <div className={className}>
-      <div className="flex justify-between items-center">
-        <p className="text-sis-blue">NO.<span className="text-xl">5</span><span className="text-sis-gray pl-2">Among Friends</span>
-          <ChevronRight className="inline-block h-4 w-4 pl-1" />
-        </p>
-        <img className="inline-block" src={calendarIcon} alt="calendar" sizes={28} />
+      <div className="pl-6 pr-2 pt-2">
+        <div className="flex justify-between items-center">
+          <p className="text-sis-blue">NO.<span className="text-xl">5</span><span className="text-sis-gray pl-2">Among Friends</span>
+            <ChevronRight className="inline-block h-4 w-4 pl-1" />
+          </p>
+          <img className="inline-block" src={calendarIcon} alt="calendar" sizes={28} />
+        </div>
+        <ExerciseChart />
       </div>
-      <Bar options={options} data={data} />
-      <div className="flex justify-between items-end text-xl mt-1 -mx-2 text-sis-blue leading-8">
+      <div className="flex justify-between items-end text-xl mt-1 text-sis-blue leading-8">
         <div className="grow bg-gradient-to-r from-sis-blue-100 rounded-2xl px-4">9.2 <span
           className="text-base font-light">hours</span></div>
         <div className="grow-0 inline-block">
@@ -126,7 +80,7 @@ function Checkin() {
   return (
     <Link to="/chat">
       <div
-        className="flex items-center bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-16 overflow-hidden">
+        className="flex items-center bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-16 overflow-hidden mr-3.5 pr-2">
         <div className="rounded-full border border-solid border-sis-blue p-1 -ml-2">
           <div
             className="rounded-full border-solid border-2 border-sky-50 p-2 bg-gradient-to-r from-sky-400">
@@ -135,8 +89,9 @@ function Checkin() {
         </div>
         <span className="text-lg font-bold text-sis-purple ml-1">Let&apos;s do a health checkin!</span>
         <div className="ml-auto mr-2">
-          <ChevronRight className="inline-block ml-1 text-gray-200" />
-          <ChevronRight className="inline-block -ml-4 text-white" />
+          <ChevronRightIcon className="inline-block text-gray-100" width={13} height={31} fill={"currentColor"} />
+          <ChevronRightIcon className="inline-block text-white -translate-x-[4px]" width={13} height={31}
+                            fill={"currentColor"} />
         </div>
       </div>
     </Link>
@@ -147,10 +102,10 @@ function RecommendItem({ icon, text }) {
   return (
     <div
       className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-12">
-      <div className="rounded-full p-1 mr-2 h-7 w-7 bg-black">
+      <div className="rounded-full p-1 ml-2 mr-2 h-7 w-7 bg-black">
         <img src={icon} alt="text" />
       </div>
-      <p className="max-w-52">{text}</p>
+      <p className="max-w-52 text-sis-black-400">{text}</p>
       <div className="inline-block ml-auto mr-2 rounded-full bg-white p-2">
         <img src={rightArrowIcon} alt="click" />
       </div>
@@ -163,7 +118,7 @@ export default function Index() {
     <>
       <Header />
       <Switch />
-      <ExercisePanel className="mt-1 px-12" />
+      <ExercisePanel className="mt-2 mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px] " />
       <div className="mt-12 px-12">
         <Checkin />
         <RecommendItem
@@ -179,6 +134,7 @@ export default function Index() {
           text={"See latest offers for tax-deductible insurance"}
         />
       </div>
+      <FooterInput />
     </>
   );
 }
