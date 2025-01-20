@@ -21,7 +21,7 @@ Call this function when user have difficult to complete the current weekly plan
 `;
 
 const adjustExercisePlanDescription = `
-Call this function when user want to adjust the current weekly exercise plan
+Call this function when user want to adjust the current weekly exercise plan. Support multiple exercises.
 `;
 
 const finalConfirmationDescription = `
@@ -50,26 +50,41 @@ const reviewCurrentPlan = {
       },
       {
         type: "function",
-        name: "adjust_execrise_plan",
+        name: "adjust_exercise_plan",
         description: adjustExercisePlanDescription,
         parameters: {
           type: "object",
           strict: true,
           properties: {
-            execrise_name: {
-              type: "string",
-              description: "Exercise name for the weekly plan"
-            },
-            frequency: {
-              type: "string",
-              description: "How many times per week to do this exercise"
-            },
-            duration: {
-              type: "string",
-              description: "How many minutes to do this exercise"
+            exercises: {
+              type: "array",
+              description: "List of exercises in the weekly plan",
+              items: {
+                type: "object",
+                properties: {
+                  name: {
+                    type: "string",
+                    description: "Name of the exercise"
+                  },
+                  frequency: {
+                    type: "number",
+                    description: "How many times per week"
+                  },
+                  duration: {
+                    type: "number",
+                    description: "Duration per session"
+                  },
+                  notes: {
+                    type: "string",
+                    description: "Additional notes or requirements",
+                    optional: true
+                  }
+                },
+                required: ["name", "frequency", "duration"]
+              }
             }
           },
-          required: ["execrise_name", "frequency", "duration"],
+          required: ["exercises", "total_weekly_minutes"],
         }
       },
       {
@@ -84,8 +99,12 @@ const reviewCurrentPlan = {
               type: "string",
               description: "User confirm the final weekly exercise plan"
             },
+            summary: {
+              type: "string",
+              description: "Summary of the final weekly exercise plan"
+            }
           },
-          required: ["confirmed_final_plan"],
+          required: ["confirmed_final_plan", "summary"],
         }
       }
     ],
@@ -218,7 +237,7 @@ export default function Chat() {
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
         setEvents((prev) => {
-          console.log("Event: ", e.data);
+          // console.log("Event: ", e.data);
           return [JSON.parse(e.data), ...prev];
         });
       });
@@ -288,16 +307,19 @@ export default function Chat() {
 
         if (
           output.type === "function_call" &&
-          output.name === "adjust_execrise_plan"
+          output.name === "adjust_exercise_plan"
         ) {
+          const planData = JSON.parse(output.arguments);
           console.log('🏋️ Exercise Plan Adjustment:', {
-            adjustment: JSON.parse(output.arguments)
+            exercises: planData.exercises,
+            totalMinutes: planData.total_weekly_minutes,
+            timestamp: new Date().toISOString()
           });
           
           // Cache the adjustment
           const adjustment = {
             timestamp: new Date().toISOString(),
-            ...JSON.parse(output.arguments)
+            ...planData
           };
           localStorage.setItem('lastExerciseAdjustment', JSON.stringify(adjustment));
 
