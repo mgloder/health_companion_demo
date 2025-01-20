@@ -280,7 +280,7 @@ export default function Chat() {
           // Cache the result in localStorage
           const result = {
             timestamp: new Date().toISOString(),
-            feedback: JSON.parse(output.arguments).user_feedback
+            feedback: JSON.parse(output.arguments)
           };
           localStorage.setItem('lastReviewPlan', JSON.stringify(result));
           
@@ -361,6 +361,46 @@ export default function Chat() {
                 `,
               },
             }));
+
+            console.log('🎵 Setting up audio monitoring');
+            
+            // Create an AudioContext to analyze the stream
+            const audioContext = new AudioContext();
+            const source = audioContext.createMediaStreamSource(audioElement.current.srcObject);
+            const analyser = audioContext.createAnalyser();
+            analyser.fftSize = 256;
+            source.connect(analyser);
+
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+            let silenceStart = null;
+            const SILENCE_THRESHOLD = 10; // Adjust this value based on testing
+            const SILENCE_DURATION = 2000; // 2 seconds of silence
+
+            const checkAudioLevel = () => {
+              analyser.getByteFrequencyData(dataArray);
+              const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
+              
+              if (average < SILENCE_THRESHOLD) {
+                if (!silenceStart) {
+                  silenceStart = Date.now();
+                } else if (Date.now() - silenceStart > SILENCE_DURATION) {
+                  console.log('🔚 Detected end of speech, closing session');
+                  audioContext.close();
+                  stopSession();
+                  window.location.href = '/message';
+                  return;
+                }
+              } else {
+                silenceStart = null;
+              }
+              
+              requestAnimationFrame(checkAudioLevel);
+            };
+
+            checkAudioLevel();
+            
+            console.log('🎧 Audio monitoring started');
+
           }, 500);
         }
       });
