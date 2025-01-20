@@ -43,6 +43,9 @@ export default {
           DEFAULT: "#717070",
           100: "#C7C7C7"
         },
+        "sis-lime": {
+          DEFAULT: "#D1FD57",
+        },
         "sis-purple": "#102A8A",
       },
       fontFamily: {
