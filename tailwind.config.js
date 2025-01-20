@@ -29,6 +29,7 @@ export default {
           100: "#EAECFA",
           300: "#EBEDFA",
           400: "#D2DFFF",
+          420: "#809BFF",
         },
         "sis-cyan": {
           50: "#F2F2F2B8",

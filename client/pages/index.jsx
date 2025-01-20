@@ -81,10 +81,12 @@ function Checkin() {
     <Link to="/chat">
       <div
         className="flex items-center bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-16 overflow-hidden mr-3.5 pr-2">
-        <div className="rounded-full border border-solid border-sis-blue p-1 -ml-2">
-          <div
-            className="rounded-full border-solid border-2 border-sky-50 p-2 bg-gradient-to-r from-sky-400">
-            <PhoneCallIcon className="text-blue-600 fill-current" width={18} height={18} />
+        <div className="rounded-full border border-solid border-[#3660F90d] p-1 -ml-2">
+          <div className="rounded-full border border-solid border-[#3660F91c]">
+            <div
+              className="rounded-full border-solid border-2 border-sky-50 p-3 bg-gradient-to-r from-[#3762FF40] to-[#BFCBF640]">
+              <PhoneCallIcon className="text-sis-blue fill-current" width={18} height={18} />
+            </div>
           </div>
         </div>
         <span className="text-lg font-bold text-sis-purple ml-1">Let&apos;s do a health checkin!</span>
@@ -105,7 +107,7 @@ function RecommendItem({ icon, text }) {
       <div className="rounded-full p-1 ml-2 mr-2 h-7 w-7 bg-black">
         <img src={icon} alt="text" />
       </div>
-      <p className="max-w-52 text-sis-black-400">{text}</p>
+      <p className="max-w-52 text-sis-black-400 py-2">{text}</p>
       <div className="inline-block ml-auto mr-2 rounded-full bg-white p-2">
         <img src={rightArrowIcon} alt="click" />
       </div>
@@ -119,20 +121,22 @@ export default function Index() {
       <Header />
       <Switch />
       <ExercisePanel className="mt-2 mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px] " />
-      <div className="mt-12 px-12">
+      <div className="mt-10 px-6">
         <Checkin />
-        <RecommendItem
-          icon={healthShieldIcon}
-          text={"Eating tips for the Winter"}
-        />
-        <RecommendItem
-          icon={bookIcon}
-          text={"Exercise at office desk ?"}
-        />
-        <RecommendItem
-          icon={shopBagIcon}
-          text={"See latest offers for tax-deductible insurance"}
-        />
+        <div className="mt-8">
+          <RecommendItem
+            icon={healthShieldIcon}
+            text={"Eating tips for the Winter"}
+          />
+          <RecommendItem
+            icon={bookIcon}
+            text={"Exercise at office desk ?"}
+          />
+          <RecommendItem
+            icon={shopBagIcon}
+            text={"See latest offers for tax-deductible insurance"}
+          />
+        </div>
       </div>
       <FooterInput />
     </>
