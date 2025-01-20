@@ -30,8 +30,10 @@ const dispatcher = process.env.NODE_ENV === 'development' && process.env.ALL_PRO
       uri: process.env.ALL_PROXY
     })
   : new Agent();
-logger.debug('Proxy agent initialized with:', { 
-  mode: process.env.NODE_ENV, 
+
+logger.debug({
+  msg: 'Proxy agent initialized',
+  mode: process.env.NODE_ENV,
   proxy: process.env.ALL_PROXY || 'none'
 });
 
