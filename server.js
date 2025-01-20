@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 import { Agent, ProxyAgent } from "undici";
 import pino from 'pino';
+import { generateInstructions } from './instructionConfig.js';
 
 // Configure logger
 const logger = pino({
@@ -24,8 +25,15 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Initialize proxy agent
-const dispatcher =  process.env.NODE_ENV === 'development' ? new ProxyAgent("http://127.0.0.1:7890") : new Agent();
-logger.debug('Proxy agent initialized');
+const dispatcher = process.env.NODE_ENV === 'development' && process.env.ALL_PROXY
+  ? new ProxyAgent({
+      uri: process.env.ALL_PROXY
+    })
+  : new Agent();
+logger.debug('Proxy agent initialized with:', { 
+  mode: process.env.NODE_ENV, 
+  proxy: process.env.ALL_PROXY || 'none'
+});
 
 // Fastify + React + Vite configuration
 const server = Fastify({
@@ -79,6 +87,9 @@ server.get("/api-env", async (request, reply) => {
 server.get("/token", async (request, reply) => {
   logger.info('Token request received');
   try {
+    logger.debug('Generating instructions...');
+    const config = await generateInstructions();
+    
     logger.debug('Making request to OpenAI...');
     const r = await fetch("https://api.openai.com/v1/realtime/sessions", {
       dispatcher,
@@ -87,11 +98,7 @@ server.get("/token", async (request, reply) => {
         Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        model: "gpt-4o-realtime-preview-2024-12-17",
-        voice: "coral",
-        instructions: "你是一个友好的AI助理，请你后续都用中文回复"
-      }),
+      body: JSON.stringify(config),
     });
 
     const responseClone = r.clone();
