@@ -15,6 +15,36 @@ const CONNECTION_STATUS = {
   CONNECTED: "connected",
 };
 
+
+const freviewCurrentPlanDescription = `
+Call this function when user gives feedback about the current weekly exercise plan.
+`;
+
+const reviewCurrentPlan = {
+  type: "session.update",
+  session: {
+    tools: [
+      {
+        type: "function",
+        name: "review_current_weekly_plan",
+        description: freviewCurrentPlanDescription,
+        parameters: {
+          type: "object",
+          strict: true,
+          properties: {
+            user_feedback: {
+              type: "string",
+              description: "Feedback about the current weekly exercise plan"
+            }
+          },
+          required: ["user_feedback"],
+        },
+      },
+    ],
+    tool_choice: "auto",
+  },
+};
+
 export default function Chat() {
   const [styles, api] = useSpring(() => ({
     from: { y: "-100%" },
@@ -30,12 +60,30 @@ export default function Chat() {
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
+  const [functionAdded, setFunctionAdded] = useState(false);
+  const [functionCallOutput, setFunctionCallOutput] = useState(null);
 
   async function startSession() {
     try {
+      setIsSessionActive(CONNECTION_STATUS.CONNECTING);
+      
       const tokenResponse = await fetch("/token");
+      if (!tokenResponse.ok) {
+        throw new Error('Failed to get token');
+      }
+      
       const data = await tokenResponse.json();
+      if (!data.client_secret?.value) {
+        throw new Error('Invalid token response');
+      }
+
       const EPHEMERAL_KEY = data.client_secret.value;
+      
+      // Request microphone permission first
+      const ms = await navigator.mediaDevices.getUserMedia({ audio: true })
+        .catch(err => {
+          throw new Error('Microphone access denied');
+        });
 
       const pc = new RTCPeerConnection();
 
@@ -44,7 +92,6 @@ export default function Chat() {
       pc.ontrack = (e) => (audioElement.current.srcObject = e.streams[0]);
 
       // 添加本地音频轨道（麦克风输入）
-      const ms = await navigator.mediaDevices.getUserMedia({ audio: true });
       pc.addTrack(ms.getTracks()[0]);
 
       // 创建数据通道
@@ -76,13 +123,17 @@ export default function Chat() {
 
       // 保存 RTCPeerConnection 实例
       peerConnection.current = pc;
-    } catch (error) {
-      console.error("启动会话失败:", error);
-    } finally {
-      setIsSessionActive(CONNECTION_STATUS.CONNECTING);
+
+      console.debug('Session started successfully');
       intervalRef.current = setInterval(() => {
-        setSpeakingTime((prevTime) => prevTime + 1); // 每秒增加 1
+        setSpeakingTime((prevTime) => prevTime + 1);
       }, 1000);
+
+    } catch (error) {
+      console.error('Failed to start session:', error);
+      setIsSessionActive(CONNECTION_STATUS.DISCONNECTED);
+      // Show error to user
+      alert(`Failed to start session: ${error.message}`);
     }
   }
 
@@ -130,6 +181,51 @@ export default function Chat() {
       });
     }
   }, [dataChannel]);
+
+  // Add useEffect for handling function registration
+  useEffect(() => {
+    if (!events || events.length === 0) return;
+
+    const firstEvent = events[events.length - 1];
+    if (!functionAdded && firstEvent.type === "session.created") {
+      dataChannel?.send(JSON.stringify(reviewCurrentPlan));
+      setFunctionAdded(true);
+    }
+
+    const mostRecentEvent = events[0];
+    if (
+      mostRecentEvent.type === "response.done" &&
+      mostRecentEvent.response.output
+    ) {
+      mostRecentEvent.response.output.forEach((output) => {
+        if (
+          output.type === "function_call" &&
+          output.name === "review_current_weekly_plan"
+        ) {
+          setFunctionCallOutput(output);
+          setTimeout(() => {
+            dataChannel?.send(JSON.stringify({
+              type: "response.create",
+              response: {
+                instructions: `
+                  Based on the user's feedback, provide specific suggestions 
+                  for adjusting their exercise plan.
+                `,
+              },
+            }));
+          }, 500);
+        }
+      });
+    }
+  }, [events, functionAdded, dataChannel]);
+
+  // Reset function state when session ends
+  useEffect(() => {
+    if (isSessionActive === CONNECTION_STATUS.DISCONNECTED) {
+      setFunctionAdded(false);
+      setFunctionCallOutput(null);
+    }
+  }, [isSessionActive]);
 
   return (
     <animated.div style={styles}>
@@ -181,7 +277,6 @@ export default function Chat() {
             </>
           )}
         </div>
-
       </div>
     </animated.div>
   );
