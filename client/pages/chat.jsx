@@ -16,8 +16,16 @@ const CONNECTION_STATUS = {
 };
 
 
-const freviewCurrentPlanDescription = `
-Call this function when user gives feedback about the current weekly exercise plan.
+const reviewCurrentPlanDescription = `
+Call this function when user have difficult to complete the current weekly plan
+`;
+
+const adjustExercisePlanDescription = `
+Call this function when user want to adjust the current weekly exercise plan
+`;
+
+const finalConfirmationDescription = `
+Call this function when user confirm the final weekly exercise plan
 `;
 
 const reviewCurrentPlan = {
@@ -27,7 +35,7 @@ const reviewCurrentPlan = {
       {
         type: "function",
         name: "review_current_weekly_plan",
-        description: freviewCurrentPlanDescription,
+        description: reviewCurrentPlanDescription,
         parameters: {
           type: "object",
           strict: true,
@@ -40,10 +48,51 @@ const reviewCurrentPlan = {
           required: ["user_feedback"],
         },
       },
+      {
+        type: "function",
+        name: "adjust_execrise_plan",
+        description: adjustExercisePlanDescription,
+        parameters: {
+          type: "object",
+          strict: true,
+          properties: {
+            execrise_name: {
+              type: "string",
+              description: "Exercise name for the weekly plan"
+            },
+            frequency: {
+              type: "string",
+              description: "How many times per week to do this exercise"
+            },
+            duration: {
+              type: "string",
+              description: "How many minutes to do this exercise"
+            }
+          },
+          required: ["execrise_name", "frequency", "duration"],
+        }
+      },
+      {
+        type: "function",
+        name: "confirm_final_plan",
+        description: finalConfirmationDescription,
+        parameters: {
+          type: "object",
+          strict: true,
+          properties: {
+            confirmed_final_plan: {
+              type: "string",
+              description: "User confirm the final weekly exercise plan"
+            },
+          },
+          required: ["confirmed_final_plan"],
+        }
+      }
     ],
     tool_choice: "auto",
   },
 };
+
 
 export default function Chat() {
   const [styles, api] = useSpring(() => ({
@@ -174,13 +223,20 @@ export default function Chat() {
         });
       });
 
-      // Set session active when the data channel is opened
+      // Set session active when the data channel is opened and function is added
       dataChannel.addEventListener("open", () => {
-        setIsSessionActive(CONNECTION_STATUS.CONNECTED);
+        setIsSessionActive(CONNECTION_STATUS.CONNECTING);
         setEvents([]);
       });
     }
   }, [dataChannel]);
+
+  // Update connection status when function is added
+  useEffect(() => {
+    if (functionAdded && isSessionActive === CONNECTION_STATUS.CONNECTING) {
+      setIsSessionActive(CONNECTION_STATUS.CONNECTED);
+    }
+  }, [functionAdded, isSessionActive]);
 
   // Add useEffect for handling function registration
   useEffect(() => {
@@ -202,14 +258,84 @@ export default function Chat() {
           output.type === "function_call" &&
           output.name === "review_current_weekly_plan"
         ) {
+          // Cache the result in localStorage
+          const result = {
+            timestamp: new Date().toISOString(),
+            feedback: JSON.parse(output.arguments).user_feedback
+          };
+          localStorage.setItem('lastReviewPlan', JSON.stringify(result));
+          
+          // Log the cached result
+          console.log('📋 Review Plan Result:', {
+            cached: result,
+            rawOutput: output
+          });
+
           setFunctionCallOutput(output);
+          
+          // Send the adjust exercise plan tool after review
           setTimeout(() => {
             dataChannel?.send(JSON.stringify({
               type: "response.create",
               response: {
                 instructions: `
-                  Based on the user's feedback, provide specific suggestions 
-                  for adjusting their exercise plan.
+                  通过讨论的方式，和用户一起来修改健身计划
+                `,
+              },
+            }));
+          }, 500);
+        }
+
+        if (
+          output.type === "function_call" &&
+          output.name === "adjust_execrise_plan"
+        ) {
+          console.log('🏋️ Exercise Plan Adjustment:', {
+            adjustment: JSON.parse(output.arguments)
+          });
+          
+          // Cache the adjustment
+          const adjustment = {
+            timestamp: new Date().toISOString(),
+            ...JSON.parse(output.arguments)
+          };
+          localStorage.setItem('lastExerciseAdjustment', JSON.stringify(adjustment));
+
+          // Send final confirmation step
+          setTimeout(() => {
+            dataChannel?.send(JSON.stringify({
+              type: "response.create",
+              response: {
+                instructions: `
+                  和用户确认最终新的健身计划
+                `,
+              },
+            }));
+          }, 500);
+        }
+
+        if (
+          output.type === "function_call" &&
+          output.name === "confirm_final_plan"
+        ) {
+          console.log('✅ Final Plan Confirmation:', {
+            confirmation: JSON.parse(output.arguments)
+          });
+          
+          // Cache the confirmation
+          const confirmation = {
+            timestamp: new Date().toISOString(),
+            ...JSON.parse(output.arguments)
+          };
+          localStorage.setItem('lastPlanConfirmation', JSON.stringify(confirmation));
+
+          // Send the final confirmation tool
+          setTimeout(() => {
+            dataChannel?.send(JSON.stringify({
+              type: "response.create",
+              response: {
+                instructions: `
+                  发送通话结束的语音给用户
                 `,
               },
             }));
