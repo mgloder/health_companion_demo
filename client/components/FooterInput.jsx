@@ -14,7 +14,7 @@ export default function FooterInput() {
             placeholder="Ask me anything ..."
             className="flex-1 focus:outline-none mr-2 bg-sis-cyan-60"
           />
-          <button className="ml-auto">
+          <button className="ml-auto h-5 w-6">
             <img src={pictureIcon} alt="select picture" />
           </button>
         </div>

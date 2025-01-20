@@ -80,7 +80,7 @@ function Checkin() {
   return (
     <Link to="/chat">
       <div
-        className="flex items-center bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-16 overflow-hidden mr-3.5 pr-2">
+        className="flex items-center bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-20 overflow-hidden mr-3.5 pr-2">
         <div className="rounded-full border border-solid border-[#3660F90d] p-1 -ml-2">
           <div className="rounded-full border border-solid border-[#3660F91c]">
             <div
@@ -103,12 +103,12 @@ function Checkin() {
 function RecommendItem({ icon, text }) {
   return (
     <div
-      className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-12">
-      <div className="rounded-full p-1 ml-2 mr-2 h-7 w-7 bg-black">
+      className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-16">
+      <div className="rounded-full p-1 ml-3 mr-5 h-7 w-7 bg-black">
         <img src={icon} alt="text" />
       </div>
       <p className="max-w-52 text-sis-black-400 py-2">{text}</p>
-      <div className="inline-block ml-auto mr-2 rounded-full bg-white p-2">
+      <div className="inline-block ml-auto mr-3 rounded-full bg-white p-2">
         <img src={rightArrowIcon} alt="click" />
       </div>
     </div>
@@ -123,7 +123,7 @@ export default function Index() {
       <ExercisePanel className="mt-2 mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px] " />
       <div className="mt-10 px-6">
         <Checkin />
-        <div className="mt-8">
+        <div className="mt-8 -ml-1.5">
           <RecommendItem
             icon={healthShieldIcon}
             text={"Eating tips for the Winter"}
