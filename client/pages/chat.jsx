@@ -17,37 +17,21 @@ const CONNECTION_STATUS = {
 
 
 const reviewCurrentPlanDescription = `
-Call this function when user have difficult to complete the current weekly plan
+Call this function when user have difficult to complete the current exercise plan
 `;
 
 const adjustExercisePlanDescription = `
-Call this function when user want to adjust the current weekly exercise plan. Support multiple exercises.
+Call this function when user want to adjust the current exercise plan. Support multiple exercises.
 `;
 
 const finalConfirmationDescription = `
-Call this function when user confirm the final weekly exercise plan
+Call this function when user confirm the final exercise plan or don't want to adjust the exercise plan
 `;
 
 const reviewCurrentPlan = {
   type: "session.update",
   session: {
     tools: [
-      {
-        type: "function",
-        name: "review_current_weekly_plan",
-        description: reviewCurrentPlanDescription,
-        parameters: {
-          type: "object",
-          strict: true,
-          properties: {
-            user_feedback: {
-              type: "string",
-              description: "Feedback about the current weekly exercise plan"
-            }
-          },
-          required: ["user_feedback"],
-        },
-      },
       {
         type: "function",
         name: "adjust_exercise_plan",
@@ -263,8 +247,21 @@ export default function Chat() {
 
     const firstEvent = events[events.length - 1];
     if (!functionAdded && firstEvent.type === "session.created") {
-      dataChannel?.send(JSON.stringify(reviewCurrentPlan));
-      setFunctionAdded(true);
+
+      // Add slight delay before sending function definitions
+      setTimeout(() => {
+        dataChannel?.send(JSON.stringify(reviewCurrentPlan));
+        setFunctionAdded(true);
+        setTimeout(() => {
+          const event = {
+            type: "response.create",
+            response: {
+              modalities: ["audio", "text"]
+            },
+          };
+          dataChannel?.send(JSON.stringify(event));
+        }, 500);
+      }, 1000);
     }
 
     const mostRecentEvent = events[0];
@@ -273,38 +270,6 @@ export default function Chat() {
       mostRecentEvent.response.output
     ) {
       mostRecentEvent.response.output.forEach((output) => {
-        if (
-          output.type === "function_call" &&
-          output.name === "review_current_weekly_plan"
-        ) {
-          // Cache the result in localStorage
-          const result = {
-            timestamp: new Date().toISOString(),
-            feedback: output.arguments
-          };
-          localStorage.setItem('lastReviewPlan', JSON.stringify(result));
-          
-          // Log the cached result
-          console.log('📋 Review Plan Result:', {
-            cached: result,
-            rawOutput: output
-          });
-
-          setFunctionCallOutput(output);
-          
-          // Send the adjust exercise plan tool after review
-          setTimeout(() => {
-            dataChannel?.send(JSON.stringify({
-              type: "response.create",
-              response: {
-                instructions: `
-                  通过讨论的方式，和用户一起来修改健身计划，确保新的健身计划满足用户的健身目标
-                `,
-              },
-            }));
-          }, 500);
-        }
-
         if (
           output.type === "function_call" &&
           output.name === "adjust_exercise_plan"
