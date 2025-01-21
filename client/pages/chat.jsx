@@ -105,6 +105,7 @@ export default function Chat() {
   const [isSessionActive, setIsSessionActive] = useState(CONNECTION_STATUS.DISCONNECTED);
   const [events, setEvents] = useState([]);
   const intervalRef = useRef(null); // 用于存储计时器的引用
+  const agentChatLog = useRef([]); // 用于存储计时器的引用
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
@@ -114,19 +115,19 @@ export default function Chat() {
   async function startSession() {
     try {
       setIsSessionActive(CONNECTION_STATUS.CONNECTING);
-      
+
       const tokenResponse = await fetch("/token");
       if (!tokenResponse.ok) {
         throw new Error('Failed to get token');
       }
-      
+
       const data = await tokenResponse.json();
       if (!data.client_secret?.value) {
         throw new Error('Invalid token response');
       }
 
       const EPHEMERAL_KEY = data.client_secret.value;
-      
+
       // Request microphone permission first
       const ms = await navigator.mediaDevices.getUserMedia({ audio: true })
         .catch(err => {
@@ -204,6 +205,9 @@ export default function Chat() {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      if (agentChatLog.current.length > 0) {
+        localStorage.setItem('agentChatLog', JSON.stringify(agentChatLog.current));
+      }
     };
   }, []);
 
@@ -217,6 +221,9 @@ export default function Chat() {
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
         const event = JSON.parse(e.data);
+        if (event.type === "response.audio_transcript.done") {
+          agentChatLog.current = [...agentChatLog.current, event.transcript]
+        }
         console.log("📥 Incoming Event:", {
           type: event.type,
           timestamp: new Date().toISOString(),
@@ -299,7 +306,7 @@ export default function Chat() {
             totalMinutes: planData.total_weekly_minutes,
             timestamp: new Date().toISOString()
           });
-          
+
           // Cache the adjustment
           const adjustment = {
             timestamp: new Date().toISOString(),
@@ -327,7 +334,7 @@ export default function Chat() {
           console.log('✅ Final Plan Confirmation:', {
             confirmation: output.arguments
           });
-          
+
           // Cache the confirmation
           const confirmation = {
             timestamp: new Date().toISOString(),
@@ -347,7 +354,7 @@ export default function Chat() {
             }));
 
             console.log('🎵 Setting up audio monitoring');
-            
+
             // Create an AudioContext to analyze the stream
             const audioContext = new AudioContext();
             const source = audioContext.createMediaStreamSource(audioElement.current.srcObject);
@@ -363,7 +370,7 @@ export default function Chat() {
             const checkAudioLevel = () => {
               analyser.getByteFrequencyData(dataArray);
               const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-              
+
               if (average < SILENCE_THRESHOLD) {
                 if (!silenceStart) {
                   silenceStart = Date.now();
@@ -377,12 +384,12 @@ export default function Chat() {
               } else {
                 silenceStart = null;
               }
-              
+
               requestAnimationFrame(checkAudioLevel);
             };
 
             checkAudioLevel();
-            
+
             console.log('🎧 Audio monitoring started');
 
           }, 500);

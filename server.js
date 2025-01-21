@@ -8,6 +8,7 @@ import { Agent, ProxyAgent } from "undici";
 import pino from 'pino';
 import { generateInstructions } from './instructionConfig.js';
 import { handler as parseExerciseHandler } from './parse-exercise.js';
+import { handler as summaryCheckinHandler } from './summary-checkin.js';
 
 // Configure logger
 const logger = pino({
@@ -92,7 +93,7 @@ server.get("/token", async (request, reply) => {
   try {
     logger.debug('Generating instructions...');
     const config = await generateInstructions();
-    
+
     logger.debug('Making request to OpenAI...');
     const r = await fetch("https://api.openai.com/v1/realtime/sessions", {
       dispatcher,
@@ -150,6 +151,22 @@ server.post("/api/parse-exercise", async (request, reply) => {
     logger.debug('Exercise summary parsed successfully');
   } catch (error) {
     logger.error({ err: error }, 'Error parsing exercise summary');
+    reply.code(500).send({ error: 'Failed to parse exercise summary' });
+  }
+});
+
+// Add new API endpoint for summary
+server.post("/api/summary", async (request, reply) => {
+  try {
+    await summaryCheckinHandler(
+      {
+        ...request,
+        body: request.body,
+        dispatcher
+      }
+    );
+  } catch (error) {
+    logger.error({ err: error }, 'Error summary checkin');
     reply.code(500).send({ error: 'Failed to parse exercise summary' });
   }
 });

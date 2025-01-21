@@ -26,9 +26,11 @@ function Header() {
 
 export default function Message() {
   const [exercisePlan, setExercisePlan] = useState(null);
+  const [chatLog, setChatLog] = useState(null);
 
   // 在组件加载时获取 localStorage 的值
   useEffect(() => {
+    const chatLog = localStorage.getItem("agentChatLog");
     let exercisesPlanStr = null;
 
     if (localStorage.getItem("lastExerciseAdjustment")) {
@@ -37,6 +39,7 @@ export default function Message() {
       exercisesPlanStr = localStorage.getItem("lastPlanConfirmation");
     }
 
+    setChatLog(chatLog)
     setExercisePlan(JSON.parse(exercisesPlanStr));
   }, [])
 
@@ -46,7 +49,7 @@ export default function Message() {
       <Header />
 
       <div className="flex-1 overflow-scroll px-8">
-        <CheckinMessageItem exercisePlan={exercisePlan}/>
+        <CheckinMessageItem chatLog={chatLog} exercisePlan={exercisePlan}/>
       </div>
       <FooterInput />
     </div>

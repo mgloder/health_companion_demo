@@ -4,6 +4,37 @@ import linerShape from "../assets/liner-shape.svg";
 import ExercisePanel from "./ExercisePanel.jsx";
 import LifeStylePanel from "./LifeStylePanel.jsx";
 import userProfile from "../assets/marry-profile.json";
+import useSWR from "swr";
+
+async function postFetcher([url, body]) {
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+      throw new Error(`请求 ${url} status: ${response.status} 失败 `);
+    }
+    return response.json();
+  } catch (error) {
+    console.error('请求出错:', error);
+    return null;
+  }
+}
+
+function getSummaryOrDefault(summary) {
+  const defaultSummary = `I spoke with Marry today. She is doing very well,exceeding her exercise goals and staying healthy overall! 💪
+  We will continue to focus on her goal to achieve a healthier lifestyle in 6 months.
+  🎯 I am super excited for Marry and she has been an inspiration!😆`;
+  const summaryStr = summary ? summary : defaultSummary;
+  const lines = summaryStr.split("\n");
+  return lines.map((line, index) => (
+    <p key={index}>{line}</p>
+  ));
+}
 
 function getGoalText({ currentWeight, targetWeight, timeframe }) {
   if (targetWeight === currentWeight) {
@@ -15,7 +46,17 @@ function getGoalText({ currentWeight, targetWeight, timeframe }) {
   }
 }
 
-export default function CheckinMessageItem({ exercisePlan }) {
+export default function CheckinMessageItem({ chatLog, exercisePlan }) {
+  const { data: exercises } = useSWR(
+    exercisePlan?.summary ? ["/api/parse-exercise", { summary: exercisePlan.summary }] : null,
+    postFetcher,
+  );
+
+  const { data: summary } = useSWR(
+    chatLog ? ["/api/summary", { summary: chatLog }] : null,
+    postFetcher,
+  );
+
   return (
     <div className="mt-2 px-2 pb-8 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
       <div className="relative flex items-center justify-between py-6">
@@ -34,27 +75,27 @@ export default function CheckinMessageItem({ exercisePlan }) {
         />
       </div>
       <div className="rounded-3xl bg-sis-white-50 p-5 text-sm text-sis-purple">
-        <p>I spoke with Marry today. She is doing very well,exceeding her exercise goals and staying healthy
-          overall! 💪</p>
-        <p>We will continue to focus on her goal to achieve a healthier lifestyle in 6 months.</p>
-        <p>🎯 I am super excited for Marry and she has been an inspiration!😆</p>
+        {getSummaryOrDefault(summary)}
       </div>
 
       <div className="mt-4">
         <div className="flex items-center text-sm">
-          <span className="bg-gradient-to-r from-sis-blue to-sis-blue-420 text-sis-lime px-3 py-1 rounded-full z-10">Goal</span>
-          <div className="flex-1 rounded-r-xl bg-gradient-to-r from-[#D9E2F545] to-[#CFDEFF8F] -ml-2 pr-3 py-1 text-right ">
+          <span
+            className="bg-gradient-to-r from-sis-blue to-sis-blue-420 text-sis-lime px-3 py-1 rounded-full z-10">Goal</span>
+          <div
+            className="flex-1 rounded-r-xl bg-gradient-to-r from-[#D9E2F545] to-[#CFDEFF8F] -ml-2 pr-3 py-1 text-right ">
             <span className="text-sis-blue">{getGoalText(userProfile.user)}</span>
           </div>
         </div>
 
-        <div className="inline-block mt-3 text-sm bg-gradient-to-r from-sis-blue to-sis-blue-420 rounded-full px-3 py-1">
+        <div
+          className="inline-block mt-3 text-sm bg-gradient-to-r from-sis-blue to-sis-blue-420 rounded-full px-3 py-1">
           <span className="text-sis-lime">Weekly Plan</span>
         </div>
 
         <div className="mt-3">
-          <ExercisePanel data={exercisePlan?.exercises}/>
-          <LifeStylePanel data={exercisePlan?.lifeStyle}/>
+          <ExercisePanel data={exercises} />
+          <LifeStylePanel data={exercisePlan?.lifeStyle} />
         </div>
       </div>
     </div>
