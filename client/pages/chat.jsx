@@ -216,16 +216,33 @@ export default function Chat() {
     if (dataChannel) {
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
-        setEvents((prev) => {
-          // console.log("Event: ", e.data);
-          return [JSON.parse(e.data), ...prev];
+        const event = JSON.parse(e.data);
+        console.log("📥 Incoming Event:", {
+          type: event.type,
+          timestamp: new Date().toISOString(),
+          data: event
         });
+        setEvents((prev) => [event, ...prev]);
       });
 
-      // Set session active when the data channel is opened and function is added
+      // Log when data channel opens
       dataChannel.addEventListener("open", () => {
+        console.log("🔌 Data Channel Opened:", new Date().toISOString());
         setIsSessionActive(CONNECTION_STATUS.CONNECTING);
         setEvents([]);
+      });
+
+      // Log when data channel closes
+      dataChannel.addEventListener("close", () => {
+        console.log("🔌 Data Channel Closed:", new Date().toISOString());
+      });
+
+      // Log any errors
+      dataChannel.addEventListener("error", (error) => {
+        console.error("❌ Data Channel Error:", {
+          error,
+          timestamp: new Date().toISOString()
+        });
       });
     }
   }, [dataChannel]);
@@ -248,19 +265,22 @@ export default function Chat() {
       setTimeout(() => {
         dataChannel?.send(JSON.stringify(reviewCurrentPlan));
         setFunctionAdded(true);
-        setTimeout(() => {
-          const event = {
-            type: "response.create",
-            response: {
-              modalities: ["audio", "text"],
-              instructions: `
-                这是一次每周的checkin电话，请和Marry打招呼,询问是否准备好，然后等待用户的回答
-              `
-            },
-          };
-          dataChannel?.send(JSON.stringify(event));
+      }, 500);
+
+      setTimeout(() => {
+        const event = {
+          type: "response.create",
+          response: {
+            modalities: ["audio", "text"],
+            instructions: `
+              这是这次对话的开始，请和Marry打招呼且询问是否准备好做每周的CheckIn，然后等待用户的回答
+            `,
+            temperature: 0.6,
+          },
+        };
+        dataChannel?.send(JSON.stringify(event)
+      );
         }, 500);
-      }, 1000);
     }
 
     const mostRecentEvent = events[0];
@@ -378,6 +398,16 @@ export default function Chat() {
       setFunctionCallOutput(null);
     }
   }, [isSessionActive]);
+
+  // Log outgoing events
+  const sendEvent = (event) => {
+    console.log("📤 Outgoing Event:", {
+      type: event.type,
+      timestamp: new Date().toISOString(),
+      data: event
+    });
+    dataChannel?.send(JSON.stringify(event));
+  };
 
   return (
     <animated.div style={styles}>
