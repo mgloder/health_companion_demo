@@ -17,21 +17,20 @@ ${JSON.stringify({
     "用户姓名": userData.user.name,
     "当前体重": userData.user.currentWeight,
     "目标体重": userData.user.targetWeight,
-    "目标健身时长": userData.goals.metrics.exerciseCompletion.target,
     "生活方式要求": {
         "睡眠": `每天至少${userData.weeklyPlan.lifestyle.sleep.target.minimumHours}小时`,
         "饮食": `每周至少${userData.weeklyPlan.lifestyle.meals.target.homeCooked.frequency}次在家吃饭`
     },
-    "计划": {
-        "网球": `每周${userData.weeklyPlan.exercise.target.tennis.frequency}次，每次${userData.weeklyPlan.exercise.target.tennis.duration}分钟`,
-        "慢跑": `每周${userData.weeklyPlan.exercise.target.jogging.frequency}次，每次${userData.weeklyPlan.exercise.target.jogging.duration}分钟`,
-        "实际完成": `只完成了一次网球（${userData.weeklyPlan.exercise.actual.tennis.duration}分钟）和一次慢跑（${userData.weeklyPlan.exercise.actual.jogging.duration}分钟）`
+    "健身": {
+        "目标健身时长": userData.goals.metrics.exerciseCompletion.target,
+        "实际健身时长": userData.goals.metrics.exerciseCompletion.actual
     },
 }, null, 2)}
 
 请按照以下两步来完成对话：
-1. 根据用户的健身和生活方式完成情况，给予肯定或鼓励
-2. 询问用户对当前健身计划的反馈
+1. 和用户打招呼，并简短评价用户的饮食和睡眠情况
+2. 根据用户的健身完成情况，给予肯定，如果没有完成目标健身时长，询问原因并给出建议
+3. 询问用户对当前健身计划的反馈
 `
     };
   } catch (error) {

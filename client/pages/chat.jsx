@@ -280,7 +280,7 @@ export default function Chat() {
           // Cache the result in localStorage
           const result = {
             timestamp: new Date().toISOString(),
-            feedback: JSON.parse(output.arguments)
+            feedback: output.arguments
           };
           localStorage.setItem('lastReviewPlan', JSON.stringify(result));
           
@@ -298,7 +298,7 @@ export default function Chat() {
               type: "response.create",
               response: {
                 instructions: `
-                  通过讨论的方式，和用户一起来修改健身计划
+                  通过讨论的方式，和用户一起来修改健身计划，确保新的健身计划满足用户的健身目标
                 `,
               },
             }));
@@ -341,7 +341,7 @@ export default function Chat() {
           output.name === "confirm_final_plan"
         ) {
           console.log('✅ Final Plan Confirmation:', {
-            confirmation: JSON.parse(output.arguments)
+            confirmation: output.arguments
           });
           
           // Cache the confirmation
@@ -357,7 +357,7 @@ export default function Chat() {
               type: "response.create",
               response: {
                 instructions: `
-                  发送通话结束的语音给用户
+                  鼓励用户坚持健身并感谢用户的配合，之后结束通话
                 `,
               },
             }));
