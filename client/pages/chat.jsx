@@ -254,7 +254,7 @@ export default function Chat() {
             response: {
               modalities: ["audio", "text"],
               instructions: `
-                这是一次每周的checkin电话，请和Marry打招呼，然后等待用户的回答
+                这是一次每周的checkin电话，请和Marry打招呼,询问是否准备好，然后等待用户的回答
               `
             },
           };
