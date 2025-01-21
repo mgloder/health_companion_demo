@@ -36,7 +36,7 @@ export async function handler(req, res) {
 
     console.log('Making OpenAI request for summary:', summary);
     const completion = await openai.chat.completions.create({
-      model: "gpt-4-turbo-preview",
+      model: "gpt-4-turbo",
       messages: [
         {
           role: "system",
