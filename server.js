@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 import { Agent, ProxyAgent } from "undici";
 import pino from 'pino';
 import { generateInstructions } from './instructionConfig.js';
+import { handler as parseExerciseHandler } from './parse-exercise.js';
 
 // Configure logger
 const logger = pino({
@@ -120,6 +121,36 @@ server.get("/token", async (request, reply) => {
   } catch (error) {
     logger.error({ err: error }, 'Error in token endpoint');
     throw error;
+  }
+});
+
+// Add new API endpoint for exercise parsing
+server.post("/api/parse-exercise", async (request, reply) => {
+  logger.info('Parse exercise request received');
+  try {
+    logger.debug('Parsing exercise summary...');
+    const mockRes = {
+      status: (code) => ({
+        json: (data) => {
+          reply.code(code).send(data);
+        }
+      })
+    };
+
+    // Call the handler with the existing agent
+    await parseExerciseHandler(
+      {
+        ...request,
+        body: request.body,
+        dispatcher
+      },
+      mockRes
+    );
+
+    logger.debug('Exercise summary parsed successfully');
+  } catch (error) {
+    logger.error({ err: error }, 'Error parsing exercise summary');
+    reply.code(500).send({ error: 'Failed to parse exercise summary' });
   }
 });
 
