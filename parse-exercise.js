@@ -58,12 +58,8 @@ export async function handler(req, res) {
 
     const result = JSON.parse(completion.choices[0].message.content);
     
-    if (!result.exercises || !Array.isArray(result.exercises)) {
-      throw new Error('Invalid exercise data format from OpenAI');
-    }
-
-    console.log('Successfully parsed exercise data:', result.exercises);
-    res.status(200).json(result.exercises);
+    console.log('Successfully parsed exercise data:', result);
+    res.status(200).json(result);
     
   } catch (error) {
     console.error('Exercise parsing error:', {
