@@ -3,7 +3,7 @@ import pictureIcon from "../assets/picture.svg";
 
 export default function FooterInput() {
   return (
-    <div className="fixed bottom-0 left-0 right-0 px-4 pb-4 bg-white">
+    <div className="fixed bottom-0 left-0 right-0 px-4 py-2 bg-white">
       <div className="flex items-center gap-2">
         <button className="bg-sis-cyan-60 rounded-full p-4">
           <PhoneCallIcon className="text-sis-blue fill-current" width={18} height={18} />

@@ -1,0 +1,76 @@
+{
+  "user": {
+    "name": "Marry",
+    "currentWeight": 70,
+    "targetWeight": 68,
+    "timeframe": "6 months"
+  },
+  "weeklyPlan": {
+    "exercise": {
+      "target": {
+        "tennis": {
+          "frequency": 2,
+          "duration": 60,
+          "unit": "minutes",
+          "totalMinutes": 120
+        },
+        "jogging": {
+          "frequency": 1,
+          "duration": 30,
+          "unit": "minutes",
+          "totalMinutes": 30
+        },
+        "totalTargetMinutes": 150
+      },
+      "actual": {
+        "tennis": {
+          "frequency": 1,
+          "duration": 60,
+          "unit": "minutes",
+          "totalMinutes": 60
+        },
+        "jogging": {
+          "frequency": 1,
+          "duration": 30,
+          "unit": "minutes",
+          "totalMinutes": 30
+        },
+        "totalActualMinutes": 90
+      }
+    },
+    "lifestyle": {
+      "sleep": {
+        "target": {
+          "minimumHours": 6,
+          "unit": "hours per day"
+        }
+      },
+      "meals": {
+        "target": {
+          "homeCooked": {
+            "frequency": 3,
+            "unit": "meals per week"
+          }
+        }
+      }
+    }
+  },
+  "challenges": {
+    "exercise": [
+      "Difficulty matching tennis partner's schedule",
+      "Limited court availability",
+      "Only achieving 60% of target exercise minutes"
+    ]
+  },
+  "goals": {
+    "primary": "Maintain weight at or below 68kg",
+    "timeline": "6 months",
+    "metrics": {
+      "exerciseCompletion": {
+        "target": 150,
+        "actual": 90,
+        "unit": "minutes per week"
+      }
+    }
+  }
+}

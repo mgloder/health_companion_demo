@@ -3,6 +3,17 @@ import noteIcon from "../assets/note.svg";
 import linerShape from "../assets/liner-shape.svg";
 import ExercisePanel from "./ExercisePanel.jsx";
 import LifeStylePanel from "./LifeStylePanel.jsx";
+import userProfile from "../assets/marry-profile.json";
+
+function getGoalText({ currentWeight, targetWeight, timeframe }) {
+  if (targetWeight === currentWeight) {
+    return `Maintain your current weight.`;
+  } else if (targetWeight > currentWeight) {
+    return `Gain ${targetWeight - currentWeight}kg of muscle in ${timeframe}.`;
+  } else {
+    return `Lose ${currentWeight - targetWeight}kg in ${timeframe}.`;
+  }
+}
 
 export default function CheckinMessageItem({ exercisePlan }) {
   return (
@@ -33,7 +44,7 @@ export default function CheckinMessageItem({ exercisePlan }) {
         <div className="flex items-center text-sm">
           <span className="bg-gradient-to-r from-sis-blue to-sis-blue-420 text-sis-lime px-3 py-1 rounded-full z-10">Goal</span>
           <div className="flex-1 rounded-r-xl bg-gradient-to-r from-[#D9E2F545] to-[#CFDEFF8F] -ml-2 pr-3 py-1 text-right ">
-            <span className="text-sis-blue">Lose 5 kg in 2025</span>
+            <span className="text-sis-blue">{getGoalText(userProfile.user)}</span>
           </div>
         </div>
 

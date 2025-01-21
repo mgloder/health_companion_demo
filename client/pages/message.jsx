@@ -11,7 +11,7 @@ import ChevronLeftIcon from "../components/ChevronLeftIcon.jsx";
 function Header() {
   return (
     <div className="flex items-center px-8 py-3 bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
-      <Link to="/" className="bg-white">
+      <Link to="/">
         <ChevronLeftIcon className="inline-block" width={13} height={31} fill={"currentColor"} />
       </Link>
       <img
@@ -29,8 +29,15 @@ export default function Message() {
 
   // 在组件加载时获取 localStorage 的值
   useEffect(() => {
-    const storedValue = localStorage.getItem("lastExerciseAdjustment");
-    setExercisePlan(JSON.parse(storedValue));
+    let exercisesPlanStr = null;
+
+    if (localStorage.getItem("lastExerciseAdjustment")) {
+      exercisesPlanStr = localStorage.getItem("lastExerciseAdjustment");
+    } else if (localStorage.getItem("lastPlanConfirmation")) {
+      exercisesPlanStr = localStorage.getItem("lastPlanConfirmation");
+    }
+
+    setExercisePlan(JSON.parse(exercisesPlanStr));
   }, [])
 
   return (
@@ -40,11 +47,6 @@ export default function Message() {
 
       <div className="flex-1 overflow-scroll px-8">
         <CheckinMessageItem exercisePlan={exercisePlan}/>
-        <div className="bg-white rounded-2xl p-6 relative">
-          <button className="w-full bg-blue-500 text-white rounded-full py-3 mt-6">
-            Start !
-          </button>
-        </div>
       </div>
       <FooterInput />
     </div>
