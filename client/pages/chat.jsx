@@ -16,10 +16,6 @@ const CONNECTION_STATUS = {
 };
 
 
-const reviewCurrentPlanDescription = `
-Call this function when user have difficult to complete the current exercise plan
-`;
-
 const adjustExercisePlanDescription = `
 Call this function when user want to adjust the current exercise plan. Support multiple exercises.
 `;
@@ -256,7 +252,10 @@ export default function Chat() {
           const event = {
             type: "response.create",
             response: {
-              modalities: ["audio", "text"]
+              modalities: ["audio", "text"],
+              instructions: `
+                这是一次每周的checkin电话，请和Marry打招呼，然后等待用户的回答
+              `
             },
           };
           dataChannel?.send(JSON.stringify(event));
