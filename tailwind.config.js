@@ -47,6 +47,9 @@ export default {
           DEFAULT: "#D1FD57",
         },
         "sis-purple": "#102A8A",
+        "sis-white": {
+          50: "#FFFFFFD9",
+        }
       },
       fontFamily: {
         sans: ["Alimama FangYuanTi VF", "system-ui", "sans-serif"],

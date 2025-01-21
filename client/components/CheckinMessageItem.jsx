@@ -6,7 +6,7 @@ import LifeStylePanel from "./LifeStylePanel.jsx";
 
 export default function CheckinMessageItem() {
   return (
-    <div className="mt-2 px-2 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
+    <div className="mt-2 px-2 pb-8 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
       <div className="relative flex items-center justify-between py-6">
         <div>
           <img className="inline-block" src={noteIcon} alt="note" sizes="31" />
@@ -22,7 +22,7 @@ export default function CheckinMessageItem() {
           alt="background liner"
         />
       </div>
-      <div className="rounded-3xl bg-[#FFFFFFD9] p-5 text-sm text-sis-purple">
+      <div className="rounded-3xl bg-sis-white-50 p-5 text-sm text-sis-purple">
         <p>I spoke with Marry today. She is doing very well,exceeding her exercise goals and staying healthy
           overall! 💪</p>
         <p>We will continue to focus on her goal to achieve a healthier lifestyle in 6 months.</p>
@@ -37,8 +37,8 @@ export default function CheckinMessageItem() {
           </div>
         </div>
 
-        <div className="inline-block mt-3 bg-gradient-to-r from-sis-blue to-sis-blue-420 rounded-full px-3 py-1">
-          <span className="text-sis-lime text-sm">Weekly Plan</span>
+        <div className="inline-block mt-3 text-sm bg-gradient-to-r from-sis-blue to-sis-blue-420 rounded-full px-3 py-1">
+          <span className="text-sis-lime">Weekly Plan</span>
         </div>
 
         <div className="mt-3">
