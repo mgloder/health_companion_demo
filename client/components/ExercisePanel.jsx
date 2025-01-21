@@ -1,20 +1,47 @@
 import exerciseIcon from "../assets/exercise.svg";
+import exerciseBlueIcon from "../assets/exercise-blue.svg";
 import tennisIcon from "../assets/tennis.svg";
 import joggingIcon from "../assets/jogging.svg";
 
-function Item({ icon, name, frequency, unit }) {
+const iconMap = {
+  "网球": tennisIcon,
+  "tennis": tennisIcon,
+
+  "跑步": joggingIcon,
+  "jogging": joggingIcon,
+};
+
+function Item({ icon, name, totalVolume, unit }) {
   return (
-    <div className="grow shrink basis-[calc(50%-0.625rem)] flex items-center justify-between bg-white rounded-3xl px-3 py-2.5 shadow-sm">
+    <div
+      className="grow shrink basis-[calc(50%-0.625rem)] flex items-center justify-between bg-white rounded-3xl px-3 py-2.5 shadow-sm">
       <div className="flex items-center">
         <img className="text-sis-blue" src={icon} alt={name} />
         <span className="ml-1 flex-1 text-sm truncate">{name}</span>
       </div>
-      <span className="self-end text-lg leading-5 text-sis-blue">{frequency}<span className="text-sm ml-1">{unit}</span></span>
+      <span className="self-end text-lg leading-5 text-sis-blue">{totalVolume}<span
+        className="text-sm ml-1">{unit}</span></span>
     </div>
   );
 }
 
-export default function ExercisePanel({}) {
+export default function ExercisePanel({ data }) {
+  let itemData = data ? data : [
+    {
+      name: "Tennis",
+      frequency: "90",
+      duration: "1",
+      unit: "min",
+    },
+    {
+      name: "Jogging",
+      frequency: "30",
+      duration: "1",
+      unit: "min",
+    }];
+  const totalFrequency = itemData.reduce((sum, item) => {
+    return sum + (parseInt(item.frequency, 10) * parseInt(item.duration, 10));
+  }, 0);
   return (
     <>
       <div className="flex items-center justify-between bg-sis-white-50 rounded-3xl p-3 shadow-sm">
@@ -24,29 +51,22 @@ export default function ExercisePanel({}) {
           </div>
           <span className="text-sm text-sis-purple truncate">High intensity exercise</span>
         </div>
-        <span className="text-sis-blue">120<span className="text-sm ml-1">min</span></span>
+        <span className="text-sis-blue">{totalFrequency}<span className="text-sm ml-1">min</span></span>
       </div>
 
       <div className="mt-2.5 flex flex-wrap gap-2.5">
-        <Item
-          icon={tennisIcon}
-          name={"网球"}
-          frequency={"90"}
-          unit={"min"}
-        />
-        <Item
-          icon={joggingIcon}
-          name={"跑步"}
-          frequency={"30"}
-          unit={"min"}
-        />
-
-        <Item
-          icon={joggingIcon}
-          name={"跑步"}
-          frequency={"30"}
-          unit={"min"}
-        />
+        {
+          itemData.map((item, index) =>
+            (
+              <Item key={index}
+                    icon={iconMap[item.name.toLowerCase()] || exerciseBlueIcon}
+                    name={item.name}
+                    totalVolume={(parseInt(item.frequency, 10) * parseInt(item.duration, 10))}
+                    unit={item.unit || "min"}
+              />
+            ),
+          )
+        }
       </div>
     </>
   );

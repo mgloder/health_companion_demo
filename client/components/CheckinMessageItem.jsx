@@ -4,7 +4,7 @@ import linerShape from "../assets/liner-shape.svg";
 import ExercisePanel from "./ExercisePanel.jsx";
 import LifeStylePanel from "./LifeStylePanel.jsx";
 
-export default function CheckinMessageItem() {
+export default function CheckinMessageItem({ exercisePlan }) {
   return (
     <div className="mt-2 px-2 pb-8 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
       <div className="relative flex items-center justify-between py-6">
@@ -42,8 +42,8 @@ export default function CheckinMessageItem() {
         </div>
 
         <div className="mt-3">
-          <ExercisePanel />
-          <LifeStylePanel />
+          <ExercisePanel data={exercisePlan?.exercises}/>
+          <LifeStylePanel data={exercisePlan?.lifeStyle}/>
         </div>
       </div>
     </div>

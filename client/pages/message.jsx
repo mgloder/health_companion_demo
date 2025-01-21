@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import FooterInput from "../components/FooterInput.jsx";
@@ -24,13 +25,21 @@ function Header() {
 }
 
 export default function Message() {
+  const [exercisePlan, setExercisePlan] = useState(null);
+
+  // 在组件加载时获取 localStorage 的值
+  useEffect(() => {
+    const storedValue = localStorage.getItem("lastExerciseAdjustment");
+    setExercisePlan(JSON.parse(storedValue));
+  }, [])
+
   return (
     <div className="flex flex-col min-h-screen h-screen bg-gray-50">
 
       <Header />
 
       <div className="flex-1 overflow-scroll px-8">
-        <CheckinMessageItem />
+        <CheckinMessageItem exercisePlan={exercisePlan}/>
         <div className="bg-white rounded-2xl p-6 relative">
           <button className="w-full bg-blue-500 text-white rounded-full py-3 mt-6">
             Start !

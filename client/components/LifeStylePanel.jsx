@@ -2,6 +2,17 @@ import meditationIcon from "../assets/meditation.svg";
 import sleepIcon from "../assets/sleep.svg";
 import homeCookedIcon from "../assets/home-cooked.svg";
 
+const iconMap = {
+  "sleep": sleepIcon,
+  "睡眠": sleepIcon,
+
+  "home cooked meals": homeCookedIcon,
+  "在家吃饭": homeCookedIcon,
+
+  "meditation": meditationIcon,
+  "冥想": meditationIcon,
+};
+
 function Item({ icon, name, frequency, unit }) {
   return (
     <div className="flex items-center justify-between bg-sis-white-50 rounded-3xl px-3 py-1.5 shadow-sm">
@@ -16,22 +27,33 @@ function Item({ icon, name, frequency, unit }) {
   );
 }
 
-export default function LifeStylePanel({}) {
+export default function LifeStylePanel({ data }) {
+  let itemData = data ? data : [
+    {
+      name: "Sleep",
+      frequency: "7",
+      unit: "hours per day",
+    },
+    {
+      name: "Home cooked meals",
+      frequency: "3",
+      unit: "times",
+    }];
+
   return (
     <div className="flex flex-col gap-2.5 mt-2.5">
-      <Item
-        icon={sleepIcon}
-        name="Sleep"
-        frequency={7}
-        unit="hours per day"
-      />
-
-      <Item
-        icon={homeCookedIcon}
-        name="Home cooked meals"
-        frequency={3}
-        unit="times"
-      />
+      {
+        itemData.map((item, index) =>
+          (
+            <Item key={index}
+                  icon={iconMap[item.name.toLowerCase()] || meditationIcon}
+                  name={item.name}
+                  frequency={item.frequency}
+                  unit={item.unit}
+            />
+          ),
+        )
+      }
     </div>
   );
 }
