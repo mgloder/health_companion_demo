@@ -28,16 +28,22 @@ function Item({ icon, name, totalVolume, unit }) {
 export default function ExercisePanel({ data }) {
 
   let formatedData = data;
-  if (data && !Array.isArray(data)) {
-    formatedData = Object.keys(data).map(key => {
-      return {
-        name: key,
-        frequency: data[key].frequency.toString(),
-        duration: data[key].duration.toString(),
-        unit: "min",
-      };
-    });
+  try {
+    if (data && !Array.isArray(data)) {
+      formatedData = Object.keys(data).map(key => {
+        return {
+          name: key,
+          frequency: data[key].frequency.toString(),
+          duration: data[key].duration.toString(),
+          unit: "min",
+        };
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    formatedData = null;
   }
+
 
   let totalFrequency = 0;
   if (formatedData && formatedData.length > 0) {
@@ -49,7 +55,7 @@ export default function ExercisePanel({ data }) {
 
   return (
     <>
-      {data ? (<>
+      {formatedData ? (<>
         <div className="flex items-center justify-between bg-sis-white-50 rounded-3xl p-3 shadow-sm">
           <div className="flex items-center gap-3">
             <div className="p-1 rounded-full bg-gradient-to-br from-sis-blue to-sis-blue-420">
