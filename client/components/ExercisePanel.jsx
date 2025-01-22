@@ -26,60 +26,55 @@ function Item({ icon, name, totalVolume, unit }) {
 }
 
 export default function ExercisePanel({ data }) {
-  let itemData = data ? data : {
-    Tennis: {
-      frequency: "90",
-      duration: "1",
-      unit: "min",
-    },
-    Jogging: {
-      frequency: "30",
-      duration: "1",
-      unit: "min",
-    }
-  };
 
-  let formatedData = itemData;
-  if (itemData && !Array.isArray(itemData)) {
-    formatedData = Object.keys(itemData).map(key => {
+  let formatedData = data;
+  if (data && !Array.isArray(data)) {
+    formatedData = Object.keys(data).map(key => {
       return {
         name: key,
-        frequency: itemData[key].frequency.toString(),
-        duration: itemData[key].duration.toString(),
-        unit: "min"
+        frequency: data[key].frequency.toString(),
+        duration: data[key].duration.toString(),
+        unit: "min",
       };
     });
   }
 
-  const totalFrequency = formatedData.reduce((sum, item) => {
-    return sum + (parseInt(item.frequency, 10) * parseInt(item.duration, 10));
-  }, 0);
+  let totalFrequency = 0;
+  if (formatedData && formatedData.length > 0) {
+    totalFrequency = formatedData.reduce((sum, item) => {
+      return sum + (parseInt(item.frequency, 10) * parseInt(item.duration, 10));
+    }, 0);
+  }
+
+
   return (
     <>
-      <div className="flex items-center justify-between bg-sis-white-50 rounded-3xl p-3 shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="p-1 rounded-full bg-gradient-to-br from-sis-blue to-sis-blue-420">
-            <img src={exerciseIcon} alt="exercise" />
+      {data ? (<>
+        <div className="flex items-center justify-between bg-sis-white-50 rounded-3xl p-3 shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-1 rounded-full bg-gradient-to-br from-sis-blue to-sis-blue-420">
+              <img src={exerciseIcon} alt="exercise" />
+            </div>
+            <span className="text-sm text-sis-purple truncate">High intensity exercise</span>
           </div>
-          <span className="text-sm text-sis-purple truncate">High intensity exercise</span>
+          <span className="text-sis-blue">{totalFrequency}<span className="text-sm ml-1">min</span></span>
         </div>
-        <span className="text-sis-blue">{totalFrequency}<span className="text-sm ml-1">min</span></span>
-      </div>
 
-      <div className="mt-2.5 flex flex-wrap gap-2.5">
-        {
-          formatedData.map((item, index) =>
-            (
-              <Item key={index}
-                    icon={iconMap[item.name.toLowerCase()] || exerciseBlueIcon}
-                    name={item.name}
-                    totalVolume={(parseInt(item.frequency, 10) * parseInt(item.duration, 10))}
-                    unit={item.unit || "min"}
-              />
-            ),
-          )
-        }
-      </div>
+        <div className="mt-2.5 flex flex-wrap gap-2.5">
+          {
+            formatedData.map((item, index) =>
+              (
+                <Item key={index}
+                      icon={iconMap[item.name.toLowerCase()] || exerciseBlueIcon}
+                      name={item.name}
+                      totalVolume={(parseInt(item.frequency, 10) * parseInt(item.duration, 10))}
+                      unit={item.unit || "min"}
+                />
+              ),
+            )
+          }
+        </div>
+      </>) : <div className="h-20 bg-sis-white-50 rounded-3xl p-3 shadow-sm"/>}
     </>
   );
 }

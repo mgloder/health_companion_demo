@@ -26,14 +26,12 @@ async function postFetcher([url, body]) {
 }
 
 function getSummaryOrDefault(summary) {
-  const defaultSummary = `今天我和 Marry 进行了本周的健身 Check-In。虽然 Marry 这周的运动量没有达到我们设定的目标，总共只完成了90分钟，未能完成150分钟的计划。我们讨论了原因，主要是因为工作忙碌影响了运动时间。接下来的一周，我们决定保持原定的计划，不做调整。尽管工作繁忙，我鼓励 Marry 下周尝试抽出更多时间来锻炼。我相信你能做到，Marry，继续加油！💪🏻🌟`;
-  const summaryStr = summary ? summary : defaultSummary;
   let lines;
   try {
-    lines = summaryStr.split("\n");
+    lines = summary ? summary.split("\n") : [];
   } catch (error) {
     console.error(error);
-    lines = defaultSummary.split("\n");
+    lines = [];
   }
 
   return lines.map((line, index) => (
@@ -98,7 +96,7 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
           alt="background liner"
         />
       </div>
-      <div className="rounded-3xl bg-sis-white-50 p-5 text-sm text-sis-purple">
+      <div className="rounded-3xl bg-sis-white-50 p-5 text-sm text-sis-purple min-h-40">
         {getSummaryOrDefault(summaryObj?.summary)}
       </div>
 
