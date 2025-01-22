@@ -261,31 +261,34 @@ export default function Chat() {
     }
   }, [functionAdded, isSessionActive]);
 
+  // Handle function registration
+  useEffect(() => {
+    if (!functionAdded && events.length === 1 && events[0].type === "session.created") {
+      dataChannel?.send(JSON.stringify(reviewCurrentPlan));
+      setFunctionAdded(true);
+    }
+  }, [events, functionAdded, dataChannel]);
+
+  // Handle initial response creation after function is added
+  useEffect(() => {
+    if (functionAdded && dataChannel && events.length === 3) {  // Only when events array has just the initial session.created event
+      const event = {
+        type: "response.create",
+        response: {
+          modalities: ["audio", "text"],
+          temperature: 0.6,
+          instructions: `
+            和用户打招呼，并询问是否准备好开始每周的checkin，然后等待用户的回答
+          `
+        },
+      };
+      dataChannel.send(JSON.stringify(event));
+    }
+  }, [functionAdded, dataChannel, events]);  // Added events to dependencies
+
   // Add useEffect for handling function registration
   useEffect(() => {
     if (!events || events.length === 0) return;
-
-    const firstEvent = events[events.length - 1];
-    if (!functionAdded && firstEvent.type === "session.created") {
-
-      // Add slight delay before sending function definitions
-      setTimeout(() => {
-        dataChannel?.send(JSON.stringify(reviewCurrentPlan));
-        setFunctionAdded(true);
-      }, 500);
-
-      setTimeout(() => {
-        const event = {
-          type: "response.create",
-          response: {
-            modalities: ["audio", "text"],
-            temperature: 0.6,
-          },
-        };
-        dataChannel?.send(JSON.stringify(event)
-      );
-        }, 500);
-    }
 
     const mostRecentEvent = events[0];
     if (
@@ -402,16 +405,6 @@ export default function Chat() {
       setFunctionCallOutput(null);
     }
   }, [isSessionActive]);
-
-  // Log outgoing events
-  const sendEvent = (event) => {
-    console.log("📤 Outgoing Event:", {
-      type: event.type,
-      timestamp: new Date().toISOString(),
-      data: event
-    });
-    dataChannel?.send(JSON.stringify(event));
-  };
 
   return (
     <animated.div style={styles}>

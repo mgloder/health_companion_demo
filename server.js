@@ -147,7 +147,6 @@ server.post("/api/parse-exercise", async (request, reply) => {
       },
       mockRes
     );
-
     logger.debug('Exercise summary parsed successfully');
   } catch (error) {
     logger.error({ err: error }, 'Error parsing exercise summary');
