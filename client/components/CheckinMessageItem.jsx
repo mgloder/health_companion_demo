@@ -52,12 +52,15 @@ function getGoalText({ currentWeight, targetWeight, timeframe }) {
 }
 
 export default function CheckinMessageItem({ chatLog, exercisePlan }) {
+  let exercisesDetail;
   const { data: exercises } = useSWR(
     exercisePlan?.summary ? ["/api/parse-exercise", JSON.stringify({ summary: exercisePlan.summary })] : null,
     postFetcher,
     {
       shouldRetryOnError: false,
       refreshInterval: 0,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
   );
 
@@ -67,8 +70,16 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
     {
       shouldRetryOnError: false,
       refreshInterval: 0,
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
     }
   );
+
+  if (exercises) {
+    exercisesDetail = exercises;
+  } else if (exercisePlan?.exercises) {
+    exercisesDetail = exercisePlan.exercises
+  }
 
   return (
     <div className="mt-2 px-2 pb-8 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
@@ -107,7 +118,7 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
         </div>
 
         <div className="mt-3">
-          <ExercisePanel data={exercises} />
+          <ExercisePanel data={exercisesDetail} />
           <LifeStylePanel data={exercisePlan?.lifeStyle} />
         </div>
       </div>

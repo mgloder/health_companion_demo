@@ -44,28 +44,28 @@ const reviewCurrentPlan = {
                 properties: {
                   name: {
                     type: "string",
-                    description: "Name of the exercise"
+                    description: "Name of the exercise",
                   },
                   frequency: {
                     type: "number",
-                    description: "How many times per week"
+                    description: "How many times per week",
                   },
                   duration: {
                     type: "number",
-                    description: "Duration per session"
+                    description: "Duration per session",
                   },
                   notes: {
                     type: "string",
                     description: "Additional notes or requirements",
-                    optional: true
-                  }
+                    optional: true,
+                  },
                 },
-                required: ["name", "frequency", "duration"]
-              }
-            }
+                required: ["name", "frequency", "duration"],
+              },
+            },
           },
           required: ["exercises", "total_weekly_minutes"],
-        }
+        },
       },
       {
         type: "function",
@@ -77,16 +77,16 @@ const reviewCurrentPlan = {
           properties: {
             confirmed_final_plan: {
               type: "string",
-              description: "User confirm the final weekly exercise plan"
+              description: "User confirm the final weekly exercise plan",
             },
             summary: {
               type: "string",
-              description: "Summary of the final weekly exercise plan"
-            }
+              description: "Summary of the final weekly exercise plan",
+            },
           },
           required: ["confirmed_final_plan", "summary"],
-        }
-      }
+        },
+      },
     ],
     tool_choice: "auto",
   },
@@ -105,7 +105,7 @@ export default function Chat() {
   const [isSessionActive, setIsSessionActive] = useState(CONNECTION_STATUS.DISCONNECTED);
   const [events, setEvents] = useState([]);
   const intervalRef = useRef(null); // 用于存储计时器的引用
-  const agentChatLog = useRef([]); // 用于存储计时器的引用
+  const chatLog = useRef({ agent: [], user: [] });
   const [dataChannel, setDataChannel] = useState(null);
   const peerConnection = useRef(null);
   const audioElement = useRef(null);
@@ -118,12 +118,12 @@ export default function Chat() {
 
       const tokenResponse = await fetch("/token");
       if (!tokenResponse.ok) {
-        throw new Error('Failed to get token');
+        throw new Error("Failed to get token");
       }
 
       const data = await tokenResponse.json();
       if (!data.client_secret?.value) {
-        throw new Error('Invalid token response');
+        throw new Error("Invalid token response");
       }
 
       const EPHEMERAL_KEY = data.client_secret.value;
@@ -131,7 +131,7 @@ export default function Chat() {
       // Request microphone permission first
       const ms = await navigator.mediaDevices.getUserMedia({ audio: true })
         .catch(err => {
-          throw new Error('Microphone access denied');
+          throw new Error("Microphone access denied");
         });
 
       const pc = new RTCPeerConnection();
@@ -173,13 +173,13 @@ export default function Chat() {
       // 保存 RTCPeerConnection 实例
       peerConnection.current = pc;
 
-      console.debug('Session started successfully');
+      console.debug("Session started successfully");
       intervalRef.current = setInterval(() => {
         setSpeakingTime((prevTime) => prevTime + 1);
       }, 1000);
 
     } catch (error) {
-      console.error('Failed to start session:', error);
+      console.error("Failed to start session:", error);
       setIsSessionActive(CONNECTION_STATUS.DISCONNECTED);
       // Show error to user
       alert(`Failed to start session: ${error.message}`);
@@ -205,9 +205,6 @@ export default function Chat() {
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
-      if (agentChatLog.current.length > 0) {
-        localStorage.setItem('agentChatLog', JSON.stringify(agentChatLog.current));
-      }
     };
   }, []);
 
@@ -221,13 +218,21 @@ export default function Chat() {
       // Append new server events to the list
       dataChannel.addEventListener("message", (e) => {
         const event = JSON.parse(e.data);
+
         if (event.type === "response.audio_transcript.done") {
-          agentChatLog.current = [...agentChatLog.current, event.transcript]
+          chatLog.current.agent = [...chatLog.current.agent, event.transcript];
+          localStorage.setItem("chatLog", JSON.stringify(chatLog.current));
         }
+
+        if (event.type === "conversation.item.input_audio_transcription.completed") {
+          chatLog.current.user = [...chatLog.current.user, event.transcript];
+          localStorage.setItem("chatLog", JSON.stringify(chatLog.current));
+        }
+
         console.log("📥 Incoming Event:", {
           type: event.type,
           timestamp: new Date().toISOString(),
-          data: event
+          data: event,
         });
         setEvents((prev) => [event, ...prev]);
       });
@@ -248,7 +253,7 @@ export default function Chat() {
       dataChannel.addEventListener("error", (error) => {
         console.error("❌ Data Channel Error:", {
           error,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
       });
     }
@@ -279,7 +284,7 @@ export default function Chat() {
           temperature: 0.6,
           instructions: `
             和用户打招呼，并询问是否准备好开始每周的checkin，然后等待用户的回答
-          `
+          `,
         },
       };
       dataChannel.send(JSON.stringify(event));
@@ -301,18 +306,18 @@ export default function Chat() {
           output.name === "adjust_exercise_plan"
         ) {
           const planData = JSON.parse(output.arguments);
-          console.log('🏋️ Exercise Plan Adjustment:', {
+          console.log("🏋️ Exercise Plan Adjustment:", {
             exercises: planData.exercises,
             totalMinutes: planData.total_weekly_minutes,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
           });
 
           // Cache the adjustment
           const adjustment = {
             timestamp: new Date().toISOString(),
-            ...planData
+            ...planData,
           };
-          localStorage.setItem('lastExerciseAdjustment', JSON.stringify(adjustment));
+          localStorage.setItem("lastExerciseAdjustment", JSON.stringify(adjustment));
 
           // Send final confirmation step
           setTimeout(() => {
@@ -331,68 +336,70 @@ export default function Chat() {
           output.type === "function_call" &&
           output.name === "confirm_final_plan"
         ) {
-          console.log('✅ Final Plan Confirmation:', {
-            confirmation: output.arguments
+          console.log("✅ Final Plan Confirmation:", {
+            confirmation: output.arguments,
           });
 
           // Cache the confirmation
           const confirmation = {
             timestamp: new Date().toISOString(),
-            ...JSON.parse(output.arguments)
+            ...JSON.parse(output.arguments),
           };
-          localStorage.setItem('lastPlanConfirmation', JSON.stringify(confirmation));
+          localStorage.setItem("lastPlanConfirmation", JSON.stringify(confirmation));
 
           // Send the final confirmation tool
-          setTimeout(() => {
-            dataChannel?.send(JSON.stringify({
-              type: "response.create",
-              response: {
-                instructions: `
+          try {
+            setTimeout(() => {
+              dataChannel?.send(JSON.stringify({
+                type: "response.create",
+                response: {
+                  instructions: `
                   鼓励用户坚持健身并感谢用户的配合，之后结束通话
                 `,
-              },
-            }));
+                },
+              }));
 
-            console.log('🎵 Setting up audio monitoring');
+              // Create an AudioContext to analyze the stream
+              const audioContext = new AudioContext();
+              const source = audioContext.createMediaStreamSource(audioElement.current.srcObject);
+              const analyser = audioContext.createAnalyser();
+              analyser.fftSize = 256;
+              source.connect(analyser);
 
-            // Create an AudioContext to analyze the stream
-            const audioContext = new AudioContext();
-            const source = audioContext.createMediaStreamSource(audioElement.current.srcObject);
-            const analyser = audioContext.createAnalyser();
-            analyser.fftSize = 256;
-            source.connect(analyser);
+              const dataArray = new Uint8Array(analyser.frequencyBinCount);
+              let silenceStart = null;
+              const SILENCE_THRESHOLD = 10; // Adjust this value based on testing
+              const SILENCE_DURATION = 2000; // 2 seconds of silence
 
-            const dataArray = new Uint8Array(analyser.frequencyBinCount);
-            let silenceStart = null;
-            const SILENCE_THRESHOLD = 10; // Adjust this value based on testing
-            const SILENCE_DURATION = 2000; // 2 seconds of silence
+              const checkAudioLevel = () => {
+                analyser.getByteFrequencyData(dataArray);
+                const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
 
-            const checkAudioLevel = () => {
-              analyser.getByteFrequencyData(dataArray);
-              const average = dataArray.reduce((a, b) => a + b) / dataArray.length;
-
-              if (average < SILENCE_THRESHOLD) {
-                if (!silenceStart) {
-                  silenceStart = Date.now();
-                } else if (Date.now() - silenceStart > SILENCE_DURATION) {
-                  console.log('🔚 Detected end of speech, closing session');
-                  audioContext.close();
-                  stopSession();
-                  window.location.href = '/message';
-                  return;
+                if (average < SILENCE_THRESHOLD) {
+                  if (!silenceStart) {
+                    silenceStart = Date.now();
+                  } else if (Date.now() - silenceStart > SILENCE_DURATION) {
+                    console.log("🔚 Detected end of speech, closing session");
+                    audioContext.close();
+                    stopSession();
+                    window.location.href = "/message";
+                    return;
+                  }
+                } else {
+                  silenceStart = null;
                 }
-              } else {
-                silenceStart = null;
-              }
 
-              requestAnimationFrame(checkAudioLevel);
-            };
+                requestAnimationFrame(checkAudioLevel);
+              };
 
-            checkAudioLevel();
+              checkAudioLevel();
 
-            console.log('🎧 Audio monitoring started');
+              console.log("🎧 Audio monitoring started");
 
-          }, 500);
+            }, 500);
+          } catch (e) {
+            console.error(e);
+          }
         }
       });
     }

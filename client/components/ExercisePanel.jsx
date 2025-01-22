@@ -39,14 +39,18 @@ export default function ExercisePanel({ data }) {
     }
   };
 
-  const formatedData = Object.keys(itemData).map(key => {
-    return {
-      name: key,
-      frequency: itemData[key].frequency.toString(),
-      duration: itemData[key].duration.toString(),
-      unit: "min"
-    };
-  });
+  let formatedData = itemData;
+  if (itemData && !Array.isArray(itemData)) {
+    formatedData = Object.keys(itemData).map(key => {
+      return {
+        name: key,
+        frequency: itemData[key].frequency.toString(),
+        duration: itemData[key].duration.toString(),
+        unit: "min"
+      };
+    });
+  }
+
   const totalFrequency = formatedData.reduce((sum, item) => {
     return sum + (parseInt(item.frequency, 10) * parseInt(item.duration, 10));
   }, 0);
