@@ -26,20 +26,28 @@ function Item({ icon, name, totalVolume, unit }) {
 }
 
 export default function ExercisePanel({ data }) {
-  let itemData = data ? data : [
-    {
-      name: "Tennis",
+  let itemData = data ? data : {
+    Tennis: {
       frequency: "90",
       duration: "1",
       unit: "min",
     },
-    {
-      name: "Jogging",
+    Jogging: {
       frequency: "30",
       duration: "1",
       unit: "min",
-    }];
-  const totalFrequency = itemData.reduce((sum, item) => {
+    }
+  };
+
+  const formatedData = Object.keys(itemData).map(key => {
+    return {
+      name: key,
+      frequency: itemData[key].frequency.toString(),
+      duration: itemData[key].duration.toString(),
+      unit: "min"
+    };
+  });
+  const totalFrequency = formatedData.reduce((sum, item) => {
     return sum + (parseInt(item.frequency, 10) * parseInt(item.duration, 10));
   }, 0);
   return (
@@ -56,7 +64,7 @@ export default function ExercisePanel({ data }) {
 
       <div className="mt-2.5 flex flex-wrap gap-2.5">
         {
-          itemData.map((item, index) =>
+          formatedData.map((item, index) =>
             (
               <Item key={index}
                     icon={iconMap[item.name.toLowerCase()] || exerciseBlueIcon}

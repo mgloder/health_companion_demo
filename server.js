@@ -157,20 +157,13 @@ server.post("/api/parse-exercise", async (request, reply) => {
 // Add new API endpoint for summary
 server.post("/api/summary", async (request, reply) => {
   try {
-    const mockRes = {
-      status: (code) => ({
-        json: (data) => {
-          reply.code(code).send(data);
-        }
-      })
-    };
     await summaryCheckinHandler(
       {
         ...request,
         body: request.body,
         dispatcher
       },
-      mockRes
+      reply
     );
   } catch (error) {
     logger.error({ err: error }, 'Error summary checkin');

@@ -13,7 +13,7 @@ async function postFetcher([url, body]) {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
+      body,
     });
     if (!response.ok) {
       throw new Error(`请求 ${url} status: ${response.status} 失败 `);
@@ -26,11 +26,16 @@ async function postFetcher([url, body]) {
 }
 
 function getSummaryOrDefault(summary) {
-  const defaultSummary = `I spoke with Marry today. She is doing very well,exceeding her exercise goals and staying healthy overall! 💪
-  We will continue to focus on her goal to achieve a healthier lifestyle in 6 months.
-  🎯 I am super excited for Marry and she has been an inspiration!😆`;
+  const defaultSummary = `今天我和 Marry 进行了本周的健身 Check-In。虽然 Marry 这周的运动量没有达到我们设定的目标，总共只完成了90分钟，未能完成150分钟的计划。我们讨论了原因，主要是因为工作忙碌影响了运动时间。接下来的一周，我们决定保持原定的计划，不做调整。尽管工作繁忙，我鼓励 Marry 下周尝试抽出更多时间来锻炼。我相信你能做到，Marry，继续加油！💪🏻🌟`;
   const summaryStr = summary ? summary : defaultSummary;
-  const lines = summaryStr.split("\n");
+  let lines;
+  try {
+    lines = summaryStr.split("\n");
+  } catch (error) {
+    console.error(error);
+    lines = defaultSummary.split("\n");
+  }
+
   return lines.map((line, index) => (
     <p key={index}>{line}</p>
   ));
@@ -48,13 +53,21 @@ function getGoalText({ currentWeight, targetWeight, timeframe }) {
 
 export default function CheckinMessageItem({ chatLog, exercisePlan }) {
   const { data: exercises } = useSWR(
-    exercisePlan?.summary ? ["/api/parse-exercise", { summary: exercisePlan.summary }] : null,
+    exercisePlan?.summary ? ["/api/parse-exercise", JSON.stringify({ summary: exercisePlan.summary })] : null,
     postFetcher,
+    {
+      shouldRetryOnError: false,
+      refreshInterval: 0,
+    }
   );
 
   const { data: summary } = useSWR(
-    chatLog ? ["/api/summary", { summary: chatLog }] : null,
+    chatLog ? ["/api/summary", JSON.stringify({ summary: chatLog })] : null,
     postFetcher,
+    {
+      shouldRetryOnError: false,
+      refreshInterval: 0,
+    }
   );
 
   return (
