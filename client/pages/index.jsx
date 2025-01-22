@@ -80,12 +80,12 @@ function Checkin() {
   return (
     <Link to="/chat">
       <div
-        className="flex items-center bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-20 overflow-hidden mr-3.5 pr-2">
-        <div className="rounded-full border border-solid border-[#3660F90d] p-1 -ml-2">
+        className="flex items-center overflow-visible bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-16 overflow-hidden mr-3.5 -ml-2.5 pr-2">
+        <div className="ripple-effect rounded-full border border-solid border-[#3660F90d] p-1 -ml-2">
           <div className="rounded-full border border-solid border-[#3660F91c]">
             <div
-              className="rounded-full border-solid border-2 border-sky-50 p-3 bg-gradient-to-r from-[#3762FF40] to-[#BFCBF640]">
-              <PhoneCallIcon className="text-sis-blue fill-current" width={18} height={18} />
+              className="rounded-full border-solid border-2 border-sky-50 p-4 bg-gradient-to-r from-[#3762FF40] to-[#BFCBF640]">
+              <PhoneCallIcon className="text-sis-blue fill-current" width={24} height={24} />
             </div>
           </div>
         </div>
