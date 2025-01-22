@@ -21,7 +21,7 @@ Call this function when user want to adjust the current exercise plan. Support m
 `;
 
 const finalConfirmationDescription = `
-Call this function when user confirm the final exercise plan or don't want to adjust the exercise plan
+Call this function when the agent and user have reached the final confirmation step or want to end the conversation.
 `;
 
 const reviewCurrentPlan = {
