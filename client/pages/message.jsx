@@ -30,13 +30,13 @@ export default function Message() {
 
   // 在组件加载时获取 localStorage 的值
   useEffect(() => {
-    const chatLog = localStorage.getItem("chatLog");
+    const chatLog = sessionStorage.getItem("chatLog");
     let exercisesPlanStr = null;
 
-    if (localStorage.getItem("lastExerciseAdjustment")) {
-      exercisesPlanStr = localStorage.getItem("lastExerciseAdjustment");
-    } else if (localStorage.getItem("lastPlanConfirmation")) {
-      exercisesPlanStr = localStorage.getItem("lastPlanConfirmation");
+    if (sessionStorage.getItem("lastExerciseAdjustment")) {
+      exercisesPlanStr = sessionStorage.getItem("lastExerciseAdjustment");
+    } else if (sessionStorage.getItem("lastPlanConfirmation")) {
+      exercisesPlanStr = sessionStorage.getItem("lastPlanConfirmation");
     }
 
     setChatLog(chatLog)

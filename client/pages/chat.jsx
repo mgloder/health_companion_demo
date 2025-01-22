@@ -221,12 +221,12 @@ export default function Chat() {
 
         if (event.type === "response.audio_transcript.done") {
           chatLog.current.agent = [...chatLog.current.agent, event.transcript];
-          localStorage.setItem("chatLog", JSON.stringify(chatLog.current));
+          sessionStorage.setItem("chatLog", JSON.stringify(chatLog.current));
         }
 
         if (event.type === "conversation.item.input_audio_transcription.completed") {
           chatLog.current.user = [...chatLog.current.user, event.transcript];
-          localStorage.setItem("chatLog", JSON.stringify(chatLog.current));
+          sessionStorage.setItem("chatLog", JSON.stringify(chatLog.current));
         }
 
         console.log("📥 Incoming Event:", {
@@ -317,7 +317,7 @@ export default function Chat() {
             timestamp: new Date().toISOString(),
             ...planData,
           };
-          localStorage.setItem("lastExerciseAdjustment", JSON.stringify(adjustment));
+          sessionStorage.setItem("lastExerciseAdjustment", JSON.stringify(adjustment));
 
           // Send final confirmation step
           setTimeout(() => {
@@ -345,7 +345,7 @@ export default function Chat() {
             timestamp: new Date().toISOString(),
             ...JSON.parse(output.arguments),
           };
-          localStorage.setItem("lastPlanConfirmation", JSON.stringify(confirmation));
+          sessionStorage.setItem("lastPlanConfirmation", JSON.stringify(confirmation));
 
           // Send the final confirmation tool
           try {
