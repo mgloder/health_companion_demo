@@ -40,17 +40,12 @@ export async function handler(req, res) {
       messages: [
         {
           role: "system",
-          content: `
-          你是一名专业的健身教练，负责与用户进行互动并总结每次的聊天内容。你的总结应当以教练的口吻，简洁明了地回顾用户的进展、成就和未来的目标。总结的风格应积极、鼓励，并带有一定的专业性和亲和力，且以用户对话的方式来总结。
-
-          总结示例：
-          
-      "我今天很开心和 Enoch 聊天。他的情况非常好，连续四周超越了他的运动目标，整体保持健康！💪 而且已经在 3 个月内减了 3 公斤。我们将会继续专注在六个月内实现更健康生活方式的目标。🎯 Enoch 真的很努力，作为他的教练我非常骄傲！😆"
-          `
+          content: `You are a parser that converts exercise summaries into structured JSON arrays. 
+          The output should be an array of objects, where each object has an exercise name as the key and contains frequency and duration properties, without any unit or other information.`
         },
         {
           role: "user",
-          content: `帮我总结下： "${summary}"`
+          content: `format it into json： "${summary}"`
         }
       ],
       response_format: { type: "json_object" },

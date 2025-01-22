@@ -279,9 +279,6 @@ export default function Chat() {
           type: "response.create",
           response: {
             modalities: ["audio", "text"],
-            instructions: `
-              这是这次对话的开始，请和Marry打招呼且询问是否准备好做每周的CheckIn，然后等待用户的回答
-            `,
             temperature: 0.6,
           },
         };
