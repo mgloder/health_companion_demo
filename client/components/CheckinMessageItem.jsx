@@ -80,8 +80,14 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
   }
 
   return (
-    <div className="mt-2 px-2 pb-8 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
-      <div className="relative flex items-center justify-between py-6">
+    <div className="relative mt-2 px-2 pb-14 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
+      <img
+        src={linerShape}
+        className="absolute right-0 top-0 h-20 w-full z-0"
+        style={{ objectFit: "cover" }}
+        alt="background liner"
+      />
+      <div className=" flex items-center justify-between py-6">
         <div>
           <img className="inline-block" src={noteIcon} alt="note" sizes="31" />
           <span className="ml-2.5 leading-[31px] text-sis-blue">Check in Notes</span>
@@ -89,12 +95,6 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
         <button className="rounded-full p-2 -mt-4 bg-gradient-to-br to-sis-blue from-sis-blue-420">
           <X size={20} className="text-white z-10" />
         </button>
-        <img
-          src={linerShape}
-          className="absolute right-0 top-0 h-full w-full z-0"
-          style={{ objectFit: "cover" }}
-          alt="background liner"
-        />
       </div>
 
       <div className="rounded-3xl bg-sis-white-50 p-5 text-sm text-sis-purple min-h-40">
@@ -137,6 +137,19 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
           <LifeStylePanel data={exercisePlan?.lifeStyle} />
         </div>
       </div>
+
+
+      <img
+        src={linerShape}
+        className="absolute right-0 bottom-0 h-14 w-full z-0"
+        style={{ objectFit: "cover" }}
+        alt="background liner"
+      />
+
+      <button
+        className="absolute left-1/2 bottom-0 transform -translate-x-1/2 translate-y-1/2 w-28 z-10 py-2 rounded-3xl bg-gradient-to-br from-[#6485FA] to-[#9DB2FF] text-white">
+        Start!
+      </button>
     </div>
   );
 }
