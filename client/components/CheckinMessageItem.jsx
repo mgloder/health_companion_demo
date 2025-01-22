@@ -61,7 +61,7 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
     }
   );
 
-  const { data: summary } = useSWR(
+  const { data: summaryObj } = useSWR(
     chatLog ? ["/api/summary", JSON.stringify({ summary: chatLog })] : null,
     postFetcher,
     {
@@ -88,7 +88,7 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
         />
       </div>
       <div className="rounded-3xl bg-sis-white-50 p-5 text-sm text-sis-purple">
-        {getSummaryOrDefault(summary)}
+        {getSummaryOrDefault(summaryObj?.summary)}
       </div>
 
       <div className="mt-4">

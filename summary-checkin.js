@@ -64,7 +64,7 @@ export async function handler(req, reply) {
     const result = completion.choices[0].message.content;
 
     console.log('Successfully parsed exercise data:', result);
-    reply.code(200).send(result);
+    reply.code(200).send({ summary: result });
 
   } catch (error) {
     console.error('Exercise parsing error:', {
