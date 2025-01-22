@@ -20,7 +20,7 @@ async function postFetcher([url, body]) {
     }
     return response.json();
   } catch (error) {
-    console.error('请求出错:', error);
+    console.error("请求出错:", error);
     return null;
   }
 }
@@ -51,7 +51,7 @@ function getGoalText({ currentWeight, targetWeight, timeframe }) {
 
 export default function CheckinMessageItem({ chatLog, exercisePlan }) {
   let exercisesDetail;
-  const { data: exercises } = useSWR(
+  const { data: exercises, isLoading: isExercisesLoading } = useSWR(
     exercisePlan?.summary ? ["/api/parse-exercise", JSON.stringify({ summary: exercisePlan.summary })] : null,
     postFetcher,
     {
@@ -59,10 +59,10 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
       refreshInterval: 0,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   );
 
-  const { data: summaryObj } = useSWR(
+  const { data: summaryObj, isLoading: isSummaryLoading } = useSWR(
     chatLog ? ["/api/summary", JSON.stringify({ summary: chatLog })] : null,
     postFetcher,
     {
@@ -70,13 +70,13 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
       refreshInterval: 0,
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-    }
+    },
   );
 
   if (exercises) {
     exercisesDetail = exercises;
   } else if (exercisePlan?.exercises) {
-    exercisesDetail = exercisePlan.exercises
+    exercisesDetail = exercisePlan.exercises;
   }
 
   return (
@@ -96,8 +96,17 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
           alt="background liner"
         />
       </div>
+
       <div className="rounded-3xl bg-sis-white-50 p-5 text-sm text-sis-purple min-h-40">
-        {getSummaryOrDefault(summaryObj?.summary)}
+        {isSummaryLoading ?
+          (<div role="status" className="max-w-sm animate-pulse">
+            <div className="h-5 bg-sis-gray-100 rounded-full mb-2"></div>
+            <div className="h-5 bg-sis-gray-100 rounded-full mb-2"></div>
+            <div className="h-5 bg-sis-gray-100 rounded-full mb-2"></div>
+            <div className="h-5 bg-sis-gray-100 rounded-full"></div>
+          </div>) :
+          getSummaryOrDefault(summaryObj?.summary)
+        }
       </div>
 
       <div className="mt-4">
@@ -116,7 +125,15 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
         </div>
 
         <div className="mt-3">
-          <ExercisePanel data={exercisesDetail} />
+          {isExercisesLoading ?
+            (<div role="status" className="max-w-sm animate-pulse">
+              <div className="h-5 bg-sis-gray-100 rounded-full mb-2"></div>
+              <div className="h-5 bg-sis-gray-100 rounded-full mb-2"></div>
+              <div className="h-5 bg-sis-gray-100 rounded-full mb-2"></div>
+              <div className="h-5 bg-sis-gray-100 rounded-full"></div>
+            </div>) :
+            <ExercisePanel data={exercisesDetail} />
+          }
           <LifeStylePanel data={exercisePlan?.lifeStyle} />
         </div>
       </div>
