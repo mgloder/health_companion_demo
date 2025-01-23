@@ -80,7 +80,7 @@ export default function CheckinMessageItem({ chatLog, exercisePlan }) {
   }
 
   return (
-    <div className="relative mt-2 px-2 pb-14 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
+    <div className="relative mt-2 px-2 pb-12 rounded-2xl bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
       <img
         src={linerShape}
         className="absolute right-0 top-0 h-20 w-full z-0"

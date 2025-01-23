@@ -121,9 +121,9 @@ export default function Index() {
       <Header />
       <Switch />
       <ExercisePanel className="mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px] " />
-      <div className="mt-6 px-6">
+      <div className="mt-7 px-6">
         <Checkin />
-        <div className="mt-8 -ml-1.5">
+        <div className="mt-6 -ml-1.5">
           <RecommendItem
             icon={healthShieldIcon}
             text={"Eating tips for the Winter"}
