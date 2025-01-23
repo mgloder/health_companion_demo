@@ -3,31 +3,43 @@ import { Link } from "react-router-dom";
 import FooterInput from "../components/FooterInput.jsx";
 import ChevronLeftIcon from "../components/ChevronLeftIcon.jsx";
 import marryProfile from "../assets/marry-profile.svg";
+import coffeeProfile from "../assets/avatar/coffee.svg";
+import michaelProfile from "../assets/avatar/michael.svg";
+import masterProfile from "../assets/avatar/master.svg";
+import zhongyuanProfile from "../assets/avatar/zhongyuan.svg";
 
 // Add coach profiles data with last messages
 const coachProfiles = [
   { 
     id: 1, 
-    name: "Marry", 
-    image: marryProfile, 
-    role: "Insurance Advisor",
-    lastMessage: "I can help you find the best insurance plan for your needs",
+    name: "Coffee", 
+    image: coffeeProfile, 
+    role: "Health Coach",
+    lastMessage: "加油啊！你一定得ga",
     timestamp: "2:18 PM"
   },
   { 
     id: 2, 
-    name: "John", 
-    image: marryProfile, 
-    role: "Health Insurance Expert",
-    lastMessage: "Let's review your current health coverage",
+    name: "Michael", 
+    image: michaelProfile, 
+    role: "Actuary",
+    lastMessage: "第一次裝修應該考慮...",
     timestamp: "1:45 PM"
   },
   { 
     id: 3, 
-    name: "Sarah", 
-    image: marryProfile, 
-    role: "Tax Consultant",
-    lastMessage: "Here's how you can maximize your tax deductions",
+    name: "Master Seven", 
+    image: masterProfile, 
+    role: "Today's fortune",
+    lastMessage: "2025年的西曆三月和...",
+    timestamp: "11:30 AM"
+  },
+  { 
+    id: 4, 
+    name: "中原小美", 
+    image: zhongyuanProfile, 
+    role: "Real Estate Consultant",
+    lastMessage: "可以參考以下在藍田區...",
     timestamp: "11:30 AM"
   },
 ];
