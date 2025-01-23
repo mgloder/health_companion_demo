@@ -26,50 +26,14 @@ const tools = [
     type: "function",
     function: {
       name: "recommend_insurance_product",
-      description: "当用户想要购买保险时，推荐合适的保险产品。",
-      parameters: {
-        type: 'object',
-        properties: {
-          user_preferences: {
-            type: 'string',
-            description: '用户的偏好或需求，例如保险类型、预算等。',
-          },
-        },
-        required: ['user_preferences'],
-      },
+      description: "当用户想要获得房屋保险推荐的时候，推荐合适的保险产品。"
     },
   },
   {
     type: "function",
     function: {
       name: "collect_purchase_information",
-      description: "当用户确认购买保险时，收集用于购买保险的投保人基本信息。",
-      parameters: {
-        type: 'object',
-        properties: {
-          product_name: {
-            type: 'string',
-            description: '用户选择的保险产品名称。',
-          },
-          user_name: {
-            type: 'string',
-            description: '用户的姓名。',
-          },
-          user_email: {
-            type: 'string',
-            description: '用户的电子邮件地址。',
-          },
-          user_phone: {
-            type: 'string',
-            description: '用户的电话号码。',
-          },
-          user_address: {
-            type: 'string',
-            description: '用户的地址。',
-          },
-        },
-        required: ['product_name', 'user_name', 'user_email', 'user_phone'],
-      },
+      description: "当用户想要购买保险时，或想要询价时",
     },
   },
 ];
