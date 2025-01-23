@@ -2,25 +2,28 @@ import Fastify from "fastify";
 import FastifyVite from "@fastify/vite";
 import fastifyEnv from "@fastify/env";
 import FastifyStatic from "@fastify/static";
+import fastifySession from "@fastify/session";
+import fastifyCookie from "@fastify/cookie";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Agent, ProxyAgent } from "undici";
-import pino from 'pino';
-import { generateInstructions } from './instructionConfig.js';
-import { handler as parseExerciseHandler } from './parse-exercise.js';
-import { handler as summaryCheckinHandler } from './summary-checkin.js';
+import pino from "pino";
+import { generateInstructions } from "./instructionConfig.js";
+import { handler as parseExerciseHandler } from "./parse-exercise.js";
+import { handler as summaryCheckinHandler } from "./summary-checkin.js";
+import { handler as chatHandler } from "./chat.js";
 
 // Configure logger
 const logger = pino({
   transport: {
-    target: 'pino-pretty',
+    target: "pino-pretty",
     options: {
       colorize: true,
-      translateTime: 'HH:MM:ss Z',
-      ignore: 'pid,hostname',
+      translateTime: "HH:MM:ss Z",
+      ignore: "pid,hostname",
     },
   },
-  level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
+  level: process.env.NODE_ENV === "development" ? "debug" : "info",
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,16 +37,16 @@ const dispatcher = process.env.NODE_ENV === 'development' && process.env.ALL_PRO
   : new Agent();
 
 logger.debug({
-  msg: 'Proxy agent initialized',
+  msg: "Proxy agent initialized",
   mode: process.env.NODE_ENV,
-  proxy: process.env.ALL_PROXY || 'none'
+  proxy: process.env.ALL_PROXY || "none",
 });
 
 // Fastify + React + Vite configuration
 const server = Fastify({
-  logger: logger
+  logger: logger,
 });
-logger.info('Fastify server created');
+logger.info("Fastify server created");
 
 const schema = {
   type: "object",
@@ -56,28 +59,39 @@ const schema = {
 };
 
 // Register plugins with logging
-logger.debug('Registering static files plugin...');
+logger.debug("Registering static files plugin...");
 await server.register(FastifyStatic, {
   root: path.join(__dirname, "public"),
   prefix: "/public/",
   decorateReply: false,
 });
-logger.debug('Static files plugin registered');
+logger.debug("Static files plugin registered");
 
-logger.debug('Registering env plugin...');
+logger.debug("Registering env plugin...");
 await server.register(fastifyEnv, { dotenv: true, schema });
-logger.debug('Env plugin registered');
+logger.debug("Env plugin registered");
 
-logger.debug('Registering Vite plugin...');
+logger.debug("Registering Vite plugin...");
 await server.register(FastifyVite, {
   root: import.meta.url,
   renderer: "@fastify/react",
   dev: process.env.NODE_ENV !== "production",
 });
-logger.debug('Vite plugin registered');
+logger.debug("Vite plugin registered");
+
+await server.register(fastifyCookie);
+await server.register(fastifySession, {
+  secret: process.env.SECRET_KEY,
+  cookie: {
+    secure: process.env.NODE_ENV === "production",
+    httpOnly: true,
+    maxAge: 86400,
+  }
+});
+
 
 await server.vite.ready();
-logger.info('Vite is ready');
+logger.info("Vite is ready");
 
 server.get("/api-env", async (request, reply) => {
   return {
@@ -89,12 +103,12 @@ server.get("/api-env", async (request, reply) => {
 
 // Server-side API route to return an ephemeral realtime session token
 server.get("/token", async (request, reply) => {
-  logger.info('Token request received');
+  logger.info("Token request received");
   try {
-    logger.debug('Generating instructions...');
+    logger.debug("Generating instructions...");
     const config = await generateInstructions();
 
-    logger.debug('Making request to OpenAI...');
+    logger.debug("Making request to OpenAI...");
     const r = await fetch("https://api.openai.com/v1/realtime/sessions", {
       dispatcher,
       method: "POST",
@@ -107,10 +121,10 @@ server.get("/token", async (request, reply) => {
 
     const responseClone = r.clone();
     const bodyText = await responseClone.text();
-    logger.debug('Response received:', {
+    logger.debug("Response received:", {
       status: r.status,
       headers: Object.fromEntries(r.headers.entries()),
-      body: bodyText
+      body: bodyText,
     });
 
     return new Response(r.body, {
@@ -120,22 +134,22 @@ server.get("/token", async (request, reply) => {
       },
     });
   } catch (error) {
-    logger.error({ err: error }, 'Error in token endpoint');
+    logger.error({ err: error }, "Error in token endpoint");
     throw error;
   }
 });
 
 // Add new API endpoint for exercise parsing
 server.post("/api/parse-exercise", async (request, reply) => {
-  logger.info('Parse exercise request received');
+  logger.info("Parse exercise request received");
   try {
-    logger.debug('Parsing exercise summary...');
+    logger.debug("Parsing exercise summary...");
     const mockRes = {
       status: (code) => ({
         json: (data) => {
           reply.code(code).send(data);
-        }
-      })
+        },
+      }),
     };
 
     // Call the handler with the existing agent
@@ -143,14 +157,14 @@ server.post("/api/parse-exercise", async (request, reply) => {
       {
         ...request,
         body: request.body,
-        dispatcher
+        dispatcher,
       },
-      mockRes
+      mockRes,
     );
-    logger.debug('Exercise summary parsed successfully');
+    logger.debug("Exercise summary parsed successfully");
   } catch (error) {
-    logger.error({ err: error }, 'Error parsing exercise summary');
-    reply.code(500).send({ error: 'Failed to parse exercise summary' });
+    logger.error({ err: error }, "Error parsing exercise summary");
+    reply.code(500).send({ error: "Failed to parse exercise summary" });
   }
 });
 
@@ -161,14 +175,20 @@ server.post("/api/summary", async (request, reply) => {
       {
         ...request,
         body: request.body,
-        dispatcher
+        dispatcher,
       },
-      reply
+      reply,
     );
   } catch (error) {
-    logger.error({ err: error }, 'Error summary checkin');
-    reply.code(500).send({ error: 'Failed to parse exercise summary' });
+    logger.error({ err: error }, "Error summary checkin");
+    reply.code(500).send({ error: "Failed to parse exercise summary" });
   }
+});
+
+// Chat API
+server.post('/api/chat', async (request, reply) => {
+  const aiMessage = await chatHandler(request, dispatcher);
+  return { message: aiMessage };
 });
 
 // Server startup with logging
@@ -179,6 +199,6 @@ try {
   });
   logger.info(`Server is running on port ${process.env.PORT || 3000}`);
 } catch (err) {
-  logger.error({ err }, 'Server failed to start');
+  logger.error({ err }, "Server failed to start");
   process.exit(1);
 }
