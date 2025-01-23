@@ -80,12 +80,12 @@ function Checkin() {
   return (
     <Link to="/chat">
       <div
-        className="flex items-center overflow-visible bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-16 overflow-hidden mr-3.5 -ml-2.5 pr-2">
+        className="flex items-center overflow-visible bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-14 mr-3.5 -ml-2.5 pr-2">
         <div className="ripple-effect rounded-full border border-solid border-[#3660F90d] p-1 -ml-2">
           <div className="rounded-full border border-solid border-[#3660F91c]">
             <div
-              className="rounded-full border-solid border-2 border-sky-50 p-4 bg-gradient-to-r from-[#3762FF40] to-[#BFCBF640]">
-              <PhoneCallIcon className="text-sis-blue fill-current" width={24} height={24} />
+              className="rounded-full border-solid border-2 border-sky-50 p-3 bg-gradient-to-r from-[#3762FF40] to-[#BFCBF640]">
+              <PhoneCallIcon className="text-sis-blue fill-current" width={18} height={18} />
             </div>
           </div>
         </div>
@@ -103,7 +103,7 @@ function Checkin() {
 function RecommendItem({ icon, text }) {
   return (
     <div
-      className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-16">
+      className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-12">
       <div className="rounded-full p-1 ml-3 mr-5 h-7 w-7 bg-black">
         <img src={icon} alt="text" />
       </div>
@@ -120,8 +120,8 @@ export default function Index() {
     <>
       <Header />
       <Switch />
-      <ExercisePanel className="mt-2 mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px] " />
-      <div className="mt-10 px-6">
+      <ExercisePanel className="mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px] " />
+      <div className="mt-6 px-6">
         <Checkin />
         <div className="mt-8 -ml-1.5">
           <RecommendItem
