@@ -7,6 +7,7 @@ import coffeeProfile from "../assets/avatar/coffee.svg";
 import michaelProfile from "../assets/avatar/michael.svg";
 import masterProfile from "../assets/avatar/master.svg";
 import zhongyuanProfile from "../assets/avatar/zhongyuan.svg";
+import pdfFile from "../assets/files/form_example.pdf";
 
 // Add coach profiles data with last messages
 const coachProfiles = [
@@ -114,9 +115,75 @@ function Header({ onProfileClick }) {
   );
 }
 
+function ChatMessage({ isUser, content, timestamp, type = 'text', pdfUrl }) {
+  const renderContent = () => {
+    if (type === 'pdf') {
+      return (
+        <div 
+          className="flex items-center bg-gray-50 rounded-lg p-3 border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
+          onClick={() => window.open(pdfUrl, '_blank')}
+        >
+          <div className="bg-red-500 p-2 rounded">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm font-medium text-gray-900">{content}</p>
+            <p className="text-xs text-gray-500">PDF</p>
+          </div>
+        </div>
+      );
+    }
+    return <p>{content}</p>;
+  };
+
+  return (
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
+      {!isUser && (
+        <img
+          src={marryProfile}
+          alt="Advisor"
+          className="w-8 h-8 rounded-full mr-2 self-end"
+        />
+      )}
+      <div
+        className={`max-w-[70%] rounded-2xl p-3 ${
+          isUser 
+            ? 'bg-blue-500 text-white rounded-br-none' 
+            : 'bg-white shadow-md rounded-bl-none'
+        }`}
+      >
+        {renderContent()}
+        <span className={`text-xs mt-1 block ${isUser ? 'text-blue-100' : 'text-gray-500'}`}>
+          {timestamp}
+        </span>
+      </div>
+    </div>
+  );
+}
+
 export default function InsuranceChat() {
   const [chatLog, setChatLog] = useState(null);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
+
+  // Example messages including the actual PDF
+  const messages = [
+    {
+      id: 1,
+      isUser: false,
+      content: "form_example.pdf",
+      type: 'pdf',
+      pdfUrl: pdfFile,
+      timestamp: "2:20 PM"
+    },
+    {
+      id: 2,
+      isUser: false,
+      content: "Here's our latest insurance plan overview.",
+      timestamp: "2:20 PM"
+    }
+  ];
 
   useEffect(() => {
     const chatLog = sessionStorage.getItem("insuranceChatLog");
@@ -127,8 +194,17 @@ export default function InsuranceChat() {
     <div className="flex flex-col min-h-screen h-screen bg-gray-50">
       <Header onProfileClick={() => setIsSliderOpen(true)} />
 
-      <div className="flex-1 overflow-scroll px-8">
-        {/* Chat messages will go here */}
+      <div className="flex-1 overflow-scroll px-8 py-4">
+        {messages.map(message => (
+          <ChatMessage
+            key={message.id}
+            isUser={message.isUser}
+            content={message.content}
+            timestamp={message.timestamp}
+            type={message.type}
+            pdfUrl={message.pdfUrl}
+          />
+        ))}
       </div>
 
       <FooterInput />
