@@ -11,34 +11,34 @@ import pdfFile from "../assets/files/form_example.pdf";
 
 // Add coach profiles data with last messages
 const coachProfiles = [
-  { 
-    id: 1, 
-    name: "Coffee", 
-    image: coffeeProfile, 
+  {
+    id: 1,
+    name: "Coffee",
+    image: coffeeProfile,
     role: "Health Coach",
     lastMessage: "加油啊！你一定得ga",
     timestamp: "2:18 PM"
   },
-  { 
-    id: 2, 
-    name: "Michael", 
-    image: michaelProfile, 
+  {
+    id: 2,
+    name: "Michael",
+    image: michaelProfile,
     role: "Actuary",
     lastMessage: "第一次裝修應該考慮...",
     timestamp: "1:45 PM"
   },
-  { 
-    id: 3, 
-    name: "Master Seven", 
-    image: masterProfile, 
+  {
+    id: 3,
+    name: "Master Seven",
+    image: masterProfile,
     role: "Today's fortune",
     lastMessage: "2025年的西曆三月和...",
     timestamp: "11:30 AM"
   },
-  { 
-    id: 4, 
-    name: "中原小美", 
-    image: zhongyuanProfile, 
+  {
+    id: 4,
+    name: "中原小美",
+    image: zhongyuanProfile,
     role: "Real Estate Consultant",
     lastMessage: "可以參考以下在藍田區...",
     timestamp: "11:30 AM"
@@ -53,20 +53,20 @@ function ProfileSlider({ isOpen, onClose }) {
       }`}
     >
       {/* Glass background overlay */}
-      <div 
+      <div
         className="absolute inset-0 bg-black/5 backdrop-blur-sm"
         onClick={onClose}
       />
-      
+
       {/* Slider content */}
       <div className="relative w-3/4 h-full bg-white/80 backdrop-blur-md shadow-lg">
         <div className="p-6">
           <h2 className="text-xl font-semibold mb-6">Choose Your Advisor</h2>
-          
+
           {/* Coach profiles list */}
           <div className="space-y-4">
             {coachProfiles.map((coach) => (
-              <div 
+              <div
                 key={coach.id}
                 className="flex items-start p-4 rounded-lg hover:bg-white/50 transition-colors cursor-pointer"
               >
@@ -88,9 +88,9 @@ function ProfileSlider({ isOpen, onClose }) {
           </div>
         </div>
       </div>
-      
+
       {/* Click area to close */}
-      <div 
+      <div
         className="w-1/4 h-full"
         onClick={onClose}
       />
@@ -119,7 +119,7 @@ function ChatMessage({ isUser, content, timestamp, type = 'text', pdfUrl }) {
   const renderContent = () => {
     if (type === 'pdf') {
       return (
-        <div 
+        <div
           className="flex items-center bg-gray-50 rounded-lg p-3 border border-gray-200 cursor-pointer hover:bg-gray-100 transition-colors"
           onClick={() => window.open(pdfUrl, '_blank')}
         >
@@ -163,39 +163,53 @@ function ChatMessage({ isUser, content, timestamp, type = 'text', pdfUrl }) {
   );
 }
 
+const DEFAULT_MESSAGE = [
+  {
+    id: 1,
+    isUser: false,
+    content: "form_example.pdf",
+    type: 'pdf',
+    pdfUrl: pdfFile,
+    timestamp: "2:20 PM"
+  },
+  {
+    id: 2,
+    isUser: false,
+    content: "Here's our latest insurance plan overview.",
+    timestamp: "2:20 PM"
+  }
+];
+
 export default function InsuranceChat() {
-  const [chatLog, setChatLog] = useState(null);
+  const [chatLog, setChatLog] = useState(DEFAULT_MESSAGE);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
 
-  // Example messages including the actual PDF
-  const messages = [
-    {
-      id: 1,
-      isUser: false,
-      content: "form_example.pdf",
-      type: 'pdf',
-      pdfUrl: pdfFile,
-      timestamp: "2:20 PM"
-    },
-    {
-      id: 2,
-      isUser: false,
-      content: "Here's our latest insurance plan overview.",
-      timestamp: "2:20 PM"
+ useEffect(() => {
+    const storedChat = sessionStorage.getItem("insuranceChatLog");
+    if (storedChat) {
+      setChatLog([...chatLog, ...JSON.parse(storedChat)]);
     }
-  ];
-
-  useEffect(() => {
-    const chatLog = sessionStorage.getItem("insuranceChatLog");
-    setChatLog(chatLog);
   }, []);
+
+  const handleSendMessage = (message) => {
+    const newMessage = {
+      sender: 'user',
+      id: chatLog.length + 1,
+      isUser: true,
+      content: message,
+      type: 'text',
+      timestamp: "2:20 PM"
+    };
+    setChatLog([...chatLog, newMessage]);
+    sessionStorage.setItem("insuranceChatLog", JSON.stringify([...chatLog, newMessage]));
+  };
 
   return (
     <div className="flex flex-col min-h-screen h-screen bg-gray-50">
       <Header onProfileClick={() => setIsSliderOpen(true)} />
 
-      <div className="flex-1 overflow-scroll px-8 py-4">
-        {messages.map(message => (
+      <div className="flex-1 overflow-scroll px-8 py-4 max-h-[calc(100vh-7rem)]">
+        {chatLog.map(message => (
           <ChatMessage
             key={message.id}
             isUser={message.isUser}
@@ -207,13 +221,13 @@ export default function InsuranceChat() {
         ))}
       </div>
 
-      <FooterInput />
+      <FooterInput onSendMessage={handleSendMessage} />
 
       {/* Profile Slider */}
-      <ProfileSlider 
-        isOpen={isSliderOpen} 
-        onClose={() => setIsSliderOpen(false)} 
+      <ProfileSlider
+        isOpen={isSliderOpen}
+        onClose={() => setIsSliderOpen(false)}
       />
     </div>
   );
-} 
+}
