@@ -48,7 +48,7 @@ export default function Message() {
 
       <Header />
 
-      <div className="flex-1 overflow-scroll px-8">
+      <div className="flex-1 max-h-[calc(100vh-12rem)] overflow-y-scroll px-8">
         <CheckinMessageItem chatLog={chatLog} exercisePlan={exercisePlan}/>
       </div>
       <FooterInput />

@@ -80,7 +80,7 @@ function Checkin() {
   return (
     <Link to="/chat">
       <div
-        className="flex items-center overflow-visible bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-14 mr-3.5 -ml-2.5 pr-2">
+        className="flex items-center overflow-visible bg-gradient-to-r from-sis-cyan-150 to-sis-cyan-200 rounded-full h-14 mr-2.5 -ml-1 pr-2">
         <div className="ripple-effect rounded-full border border-solid border-[#3660F90d] p-1 -ml-2">
           <div className="rounded-full border border-solid border-[#3660F91c]">
             <div
@@ -122,11 +122,11 @@ export default function Index() {
   const navigate = useNavigate();
 
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <Header />
       <Switch />
-      <ExercisePanel className="mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px] " />
-      <div className="mt-7 px-6">
+      <ExercisePanel className="mx-6 bg-sis-cyan-110 rounded-t-2xl rounded-b-[20px]" />
+      <div className="mt-7 px-6 flex-1 overflow-y-scroll max-h-[calc(100vh-35rem)]">
         <Checkin />
         <div className="mt-6 -ml-1.5">
           <RecommendItem
@@ -145,7 +145,8 @@ export default function Index() {
           />
         </div>
       </div>
+
       <FooterInput />
-    </>
+    </div>
   );
 }
