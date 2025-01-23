@@ -187,8 +187,8 @@ server.post("/api/summary", async (request, reply) => {
 
 // Chat API
 server.post('/api/chat', async (request, reply) => {
-  const aiMessage = await chatHandler(request, dispatcher);
-  return { message: aiMessage };
+  const { aiMessage, type, data } = await chatHandler(request, dispatcher);
+  return { message: aiMessage, type, data };
 });
 
 // Server startup with logging
