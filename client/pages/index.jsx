@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { ChevronRight } from "react-feather";
 
 import PhoneCallIcon from "../components/PhoneCallIcon.jsx";
@@ -100,10 +100,13 @@ function Checkin() {
   );
 }
 
-function RecommendItem({ icon, text }) {
+function RecommendItem({ icon, text, onClick, style }) {
   return (
     <div
-      className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-12">
+      className="flex items-center bg-gradient-to-r from-sis-cyan-50 to-sis-cyan-100 rounded-full mt-4 mr-8 min-h-12"
+      onClick={onClick}
+      style={style}
+    >
       <div className="rounded-full p-1 ml-3 mr-5 h-7 w-7 bg-black">
         <img src={icon} alt="text" />
       </div>
@@ -116,6 +119,8 @@ function RecommendItem({ icon, text }) {
 }
 
 export default function Index() {
+  const navigate = useNavigate();
+
   return (
     <>
       <Header />
@@ -135,6 +140,8 @@ export default function Index() {
           <RecommendItem
             icon={shopBagIcon}
             text={"See latest offers for tax-deductible insurance"}
+            onClick={() => navigate('/insurance-chat')}
+            style={{ cursor: 'pointer' }}
           />
         </div>
       </div>
