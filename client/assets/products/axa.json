@@ -1,0 +1,34 @@
+{
+    "insurance_name": "Contractors 'All Risks' Insurance",
+    "insurance_company": "AXA General Insurance Hong Kong Limited",
+    "coverage_details": [
+        {
+            "item": "Material Damage",
+            "content": "Covers loss or damage to the insured property during the insurance period from any cause not excluded from the policy."
+        },
+        {
+            "item": "Third Party Liability",
+            "content": "Indemnifies the insured for legal liability to pay compensation for accidental death, bodily injury, illness, or disease to any person, and accidental loss or damage to physical property arising out of the performance of the contract."
+        }
+    ],
+    "applicable_scope": "Construction works carried out anywhere in the world.",
+    "insurance_period": "The period of insurance as provided for in the policy schedule.",
+    "eligibility_requirements": [
+        "Construction must adhere to the General Conditions of Contract for Civil Engineering Works/Building Works as per Hong Kong regulations.",
+        "Compliance with all relevant safety regulations and ordinances."
+    ],
+    "compensation_limits": "As specified in the policy schedule for each insured property and liability limit, subject to policy terms and conditions.",
+    "premium_range": "Determined based on project scope, contract amount, and construction details; exact premium requires consultation with the insurance company.",
+    "exclusions": [
+        "Losses caused by war, invasion, acts of foreign enemies, hostilities, terrorism, or nuclear risks are excluded.",
+        "Damage due to design defects or material flaws in the property itself is not covered."
+    ],
+    "how_to_purchase": [
+        "Through contacting an insurance agent or broker.",
+        "Directly through AXA General Insurance Hong Kong Limited."
+    ],
+    "contact_info": {
+        "customer_service_phone": "(852) 2523 3061",
+        "email": "axagi@axa.com.hk"
+    }
+}

@@ -1,0 +1,43 @@
+{
+    "insurance_name": "装修保险",
+    "insurance_company": "蓝十字",
+    "coverage_details": [
+      {
+        "item": "公共责任保险",
+        "content": "覆盖装修过程中对第三方造成的伤害或财产损失"
+      },
+      {
+        "item": "工地财产损失",
+        "content": "保障因火灾、盗窃等意外导致的装修材料、工具和设备损失"
+      },
+      {
+        "item": "工地设备损失",
+        "content": "保障工地上使用的设备和工具遭受损坏或丢失"
+      },
+      {
+        "item": "工人意外伤害",
+        "content": "提供对工人在装修过程中意外伤害的赔偿"
+      }
+    ],
+    "applicable_scope": "家庭装修、商业装修等",
+    "insurance_period": "通常为装修期间，最长可达12个月",
+    "eligibility_requirements": [
+      "装修项目需符合相关安全规定",
+      "装修人员需有合法资质"
+    ],
+    "compensation_limits": "根据不同项目和保障内容设置，具体金额需向保险公司确认",
+    "premium_range": "根据项目规模、装修费用等因素变化，具体保费需向保险公司询问",
+    "exclusions": [
+      "因装修方未按照法律法规操作导致的损失不予赔偿",
+      "装修项目中的某些特殊风险可能不包括在内"
+    ],
+    "how_to_purchase": [
+      "通过官方网站在线购买",
+      "通过保险代理人或经纪人购买"
+    ],
+    "contact_info": {
+      "customer_service_phone": "xxxxxxxxxx",
+      "email": "xxxxxxxxxx@bluecross.com.hk"
+    }
+  }
+  
