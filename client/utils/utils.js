@@ -14,3 +14,22 @@ export function chatEasing() {
     }
   };
 }
+
+export function formatChatTime(dateString) {
+  const inputDate = new Date(dateString);
+  const now = new Date();
+
+  const isSameDay =
+    inputDate.getFullYear() === now.getFullYear() &&
+    inputDate.getMonth() === now.getMonth() &&
+    inputDate.getDate() === now.getDate();
+
+  if (isSameDay) {
+    return inputDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  } else {
+    const month = String(inputDate.getMonth() + 1).padStart(2, '0');
+    const day = String(inputDate.getDate()).padStart(2, '0');
+    const time = inputDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return `${month}-${day} ${time}`;
+  }
+}
