@@ -93,6 +93,7 @@ await server.register(fastifySession, {
     maxAge: 86400,
     sameSite: 'lax',
     domain: process.env.COOKIE_DOMAIN || undefined,
+    path: '/',
   },
   saveUninitialized: false,
   cookieName: 'sessionId',
