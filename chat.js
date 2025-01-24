@@ -103,7 +103,7 @@ export async function handler(request, dispatcher) {
   let response;
   try {
     response = await openai.chat.completions.create({
-      model: "gpt-4-turbo",
+      model: "gpt-4o-mini",
       messages: request.session.chatHistory,
       tools,
       tool_choice: "auto",
