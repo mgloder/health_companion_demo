@@ -91,7 +91,11 @@ await server.register(fastifySession, {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 86400,
-  }
+    sameSite: 'lax',
+    domain: process.env.COOKIE_DOMAIN || undefined,
+  },
+  saveUninitialized: false,
+  cookieName: 'sessionId',
 });
 
 await server.vite.ready();
@@ -193,6 +197,15 @@ server.post("/api/summary", async (request, reply) => {
 server.post('/api/chat', async (request, reply) => {
   const { aiMessage, type, data } = await chatHandler(request, dispatcher);
   return { message: aiMessage, type, data };
+});
+
+// Add this proxy configuration before any routes
+server.addHook('onRequest', (request, reply, done) => {
+  if (process.env.NODE_ENV === 'production') {
+    request.raw.ip = request.headers['x-forwarded-for'] || request.raw.ip;
+    request.raw.protocol = 'https';
+  }
+  done();
 });
 
 // Server startup with logging
