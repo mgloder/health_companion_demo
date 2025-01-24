@@ -12,6 +12,7 @@ import { generateInstructions } from "./instructionConfig.js";
 import { handler as parseExerciseHandler } from "./parse-exercise.js";
 import { handler as summaryCheckinHandler } from "./summary-checkin.js";
 import { handler as chatHandler } from "./chat.js";
+import crypto from "crypto";
 
 // Configure logger
 const logger = pino({
@@ -79,16 +80,19 @@ await server.register(FastifyVite, {
 });
 logger.debug("Vite plugin registered");
 
+// Add this before fastify session registration
+const sessionSecret = process.env.SECRET_KEY || crypto.randomBytes(32).toString('hex');
+logger.debug("Session secret initialized");
+
 await server.register(fastifyCookie);
 await server.register(fastifySession, {
-  secret: process.env.SECRET_KEY,
+  secret: sessionSecret,
   cookie: {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 86400,
   }
 });
-
 
 await server.vite.ready();
 logger.info("Vite is ready");
