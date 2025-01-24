@@ -45,7 +45,7 @@ const tools = [
     type: "function",
     function: {
       name: "collect_purchase_information",
-      description: `当用户表达"确认购买"意图（如使用"确认购买""下单"等关键词）或询问保费细节时调用。调用前确保已完成保险方案推荐，并告知用户下一步需要收集的投保信息。`,
+      description: `当用户表达"确认购买"意图（如使用"确认购买""下单"等关键词）或询问保费细节时调用。调用前确保已完成保险方案推荐`,
     },
   },
 ];
@@ -128,9 +128,6 @@ export async function handler(request, dispatcher) {
         type = "recommendation";
         data = insuranceData;
       } else if (name === "collect_purchase_information") {
-        const { product_name, user_name, user_email, user_phone } = JSON.parse(args);
-        console.log("收集购买信息:", { product_name, user_name, user_email, user_phone });
-
         type = "form";
       }
     }
