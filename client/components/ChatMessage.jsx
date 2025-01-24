@@ -1,5 +1,19 @@
+import { CheckCircle } from "react-feather";
+
+import ToggleSwitch from "./ToggleSwitch.jsx";
+
 import marryProfile from "../assets/marry-profile.svg";
-import { formatChatTime } from "../utils/utils.js";
+import axa from "../assets/axa.png";
+import bluecross from "../assets/bluecross.png";
+import hongleong from "../assets/hongleong.png";
+import { useState } from "react";
+
+
+const imgMap = {
+  "安盛": axa,
+  "蓝十字": bluecross,
+  "Hong Leong 豐隆": hongleong,
+};
 
 function renderPdfItem(pdfUrl, content) {
   return (
@@ -24,27 +38,35 @@ function renderPdfItem(pdfUrl, content) {
 
 function renderRecommendationItem(data) {
   return (
-    <div>
-      <p className="font-light">我為你挑了三家公司產品以供对比：</p>
-      <div className="flex flex-col gap-2.5 mt-2.5 w-full transform translate-x-4 translate-y-2">
+    <div className="">
+      <p className="text-[15px] font-light">我為你挑了三家公司產品以供对比：</p>
+      <div className="flex flex-col gap-2.5 mt-2.5 w-full">
         {
           data.map((item, index) => {
             return (
-              <div key={index} className="px-3 py-1 bg-[#3660F91A] rounded-2xl">
+              <div key={index} className="px-3 py-1 bg-[#3660F91A] backdrop-blur-md rounded-2xl w-[277px]">
                 <div className="flex justify-between items-end">
-                  <div>
-                    <img />
+                  <div className="flex items-end gap-1">
+                    <img className="inline-block" src={imgMap[item.insuranceCompany]} sizes={26} />
                     <span className="text-sm font-bold text-sis-purple">{item.insuranceCompany}</span>
                   </div>
-                  <div>
-                    <span>HK$</span>
-                    <span>1500</span>
+                  <div className="text-sis-purple">
+                    {item.insuranceDiscountPrice && (
+                      <s className="mr-1 opacity-45 text-[10px] leading-5">官铜：HK${item.insuranceDiscountPrice}</s>)
+                    }
+                    <span className="text-[10px] leading-5">HK$</span>
+                    <span className="text-sm">1500</span>
                   </div>
                 </div>
-                <ul className="mt-2.5 text-xs leading-[18px]">
-                  <li>屬於市面上較多人撰擇的公司品牌</li>
-                  <li>12月有镯家75折優惠</li>
-                </ul>
+                {
+                  item.advantages && (
+                    <ul className="text-sis-purple mt-2.5 text-xs leading-[18px] list-disc list-inside">
+                      {item.advantages.map((item, index) => {
+                        return (<li key={index}>{item}</li>);
+                      })}
+                    </ul>)
+                }
+
               </div>
             );
           })
@@ -52,6 +74,87 @@ function renderRecommendationItem(data) {
       </div>
     </div>
   );
+}
+
+function renderFormItem(data) {
+  const [isSubmit, setIsSubmit] = useState(false);
+
+  return (
+    <div className="w-full px-6 py-5 rounded-[1.25rem] bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
+      <div className="mb-2">
+        <div className="text-xs text-sis-blue">莱主姓名：</div>
+        <div className="relative mt-1">
+          <input className="w-full text-sm leading-8 px-3 pr-10 rounded-[1.25rem] bg-white maxlength" multiple={false}
+                 maxLength={10} value={"Marry Wang"} />
+          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+            <CheckCircle className="text-[#6EB806]" size={25} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs text-sis-blue">莱主身分證號瑪：</div>
+        <div className="relative mt-1">
+          <input className="w-full text-sm leading-8 px-3 pr-10 rounded-[1.25rem] bg-white maxlength" multiple={false}
+                 maxLength={10} />
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs text-sis-blue">地址：</div>
+        <div className="relative mt-1">
+          <input className="w-full text-sm leading-8 px-3 pr-10 rounded-[1.25rem] bg-white maxlength" multiple={false}
+                 maxLength={10} />
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs text-sis-blue">装修公司：</div>
+        <div className="relative mt-1">
+          <input className="w-full text-sm leading-8 px-3 pr-10 rounded-[1.25rem] bg-white maxlength" multiple={false}
+                 maxLength={10} value={"豐澤裝修工程公司"} />
+          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+            <CheckCircle className="text-[#6EB806]" size={25} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="text-xs text-sis-blue">装修工程總費用：</div>
+        <div className="relative mt-1">
+          <input className="w-full text-sm leading-8 px-3 pr-10 rounded-[1.25rem] bg-white maxlength" multiple={false}
+                 maxLength={10} value={"HK$ 980,000"} />
+          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+            <CheckCircle className="text-[#6EB806]" size={25} />
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="inline-block text-xs text-sis-blue">是否牽涉棚架工程：</div>
+        <ToggleSwitch />
+      </div>
+
+      <div className="mb-4">
+        <div className="text-xs text-sis-blue">棚架工程費用：</div>
+        <div className="relative mt-1">
+          <input className="w-full text-sm leading-8 px-3 pr-10 rounded-[1.25rem] bg-white maxlength" multiple={false}
+                 maxLength={10} value={"HK$ 15,000"} />
+          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+            <CheckCircle className="text-[#6EB806]" size={25} />
+          </div>
+        </div>
+      </div>
+
+      <button
+        className="w-full rounded-[1.25rem] bg-gradient-to-r from-sis-blue to-sis-blue-420 text-sm leading-8 text-white"
+        onClick={() => setIsSubmit(!isSubmit)}
+      >
+        {isSubmit ? "已提交": "提交"}
+      </button>
+    </div>
+  )
+    ;
 }
 
 export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data }) {
@@ -65,27 +168,30 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
     if (type === "form") {
       return (<div><p>OK!請麻烦填寫资料👇</p></div>);
     }
-    return <p>{content}</p>;
+    return <p className="text-[15px]">{content}</p>;
   };
 
   return (
-    <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
-      {!isUser && (
-        <img
-          src={marryProfile}
-          alt="Advisor"
-          className="w-8 h-8 rounded-full mr-2 self-end"
-        />
-      )}
-      <div
-        className={`max-w-[75%] rounded-2xl p-3 ${
-          isUser
-            ? "bg-sis-blue text-white rounded-br-none"
-            : "bg-white shadow-md rounded-bl-none"
-        }`}
-      >
-        {renderContent()}
+    <>
+      <div className={`flex ${isUser ? "justify-end" : "justify-start"} mb-4`}>
+        {!isUser && (
+          <img
+            src={marryProfile}
+            alt="Advisor"
+            className="w-8 h-8 rounded-full mr-2 self-end"
+          />
+        )}
+        <div
+          className={`max-w-[75%] rounded-2xl p-3 ${
+            isUser
+              ? "bg-sis-blue text-white rounded-br-none"
+              : "bg-[#F0F1F9] shadow-md rounded-bl-none"
+          }`}
+        >
+          {renderContent()}
+        </div>
       </div>
-    </div>
+      {type === "form" && renderFormItem(data)}
+    </>
   );
 }

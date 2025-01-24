@@ -2,22 +2,34 @@ import OpenAI from "openai";
 
 const insuranceData = [
   {
+    insuranceName: "Contractors 'All Risks' Insurance",
+    insuranceCompany: "安盛",
+    insurancePrice: "1650",
+    insuranceDiscountPrice: "1500",
+    advantages: [
+      "屬於市面上較多人撰擇的公司品牌",
+      "12月有镯家75折優惠"
+    ]
+  },
+  {
     insuranceName: "装修保险",
     insuranceCompany: "蓝十字",
     insurancePrice: "1450",
     insuranceDiscountPrice: "1255",
+    advantages: [
+      "A1A友邦集團全资擁有",
+      "装修後保養期莲12個月比市面上大部分只有36個月長"
+    ]
   },
   {
     insuranceName: "豐隆家居裝修保險",
     insuranceCompany: "Hong Leong 豐隆",
     insurancePrice: "980",
-  },
-  {
-    insuranceName: "Contractors 'All Risks' Insurance",
-    insuranceCompany: "安盛",
-    insurancePrice: "1650",
-    insuranceDiscountPrice: "1500",
-  },
+    advantages: [
+      "性價比高",
+      "各项保障都比較全面"
+    ]
+  }
 ];
 
 
