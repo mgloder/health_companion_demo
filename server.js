@@ -92,7 +92,7 @@ await server.register(fastifySession, {
     httpOnly: true,
     maxAge: 86400,
     sameSite: 'lax',
-    domain: 'ai-health-companion.azurewebsites.net',
+    domain: process.env.APP_DOMAIN || 'localhost',
     path: '/',
   },
   saveUninitialized: true,
