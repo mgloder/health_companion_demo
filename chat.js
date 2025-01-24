@@ -52,8 +52,23 @@ export async function handler(request, dispatcher) {
 
 
   const openai = new OpenAI({
-    baseURL: "https://api.deepseek.com",
-    apiKey: "sk-9f01f2c2d59545308e04e61eea160628",
+    apiKey: process.env.OPENAI_API_KEY,
+    fetch: async (url, options) => {
+      try {
+        const response = await fetch(url, { ...options, dispatcher });
+        if (!response.ok) {
+          throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+        }
+        return response;
+      } catch (error) {
+        console.error('OpenAI API fetch error:', {
+          url,
+          error: error.message,
+          stack: error.stack
+        });
+        throw new Error(`Failed to connect to OpenAI API: ${error.message}`);
+      }
+    }
   });
   request.session.chatHistory.push({ role: "user", content: message });
 
@@ -62,7 +77,7 @@ export async function handler(request, dispatcher) {
   let response;
   try {
     response = await openai.chat.completions.create({
-      model: "deepseek-chat",
+      model: "gpt-4-turbo",
       messages: request.session.chatHistory,
       tools,
       tool_choice: "auto",
