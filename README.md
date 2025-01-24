@@ -1,5 +1,14 @@
 # AI Health Companion Demo
 
+AI Health Companion is an interactive web application that provides personalized health and wellness guidance. It combines advanced AI technology with health expertise to offer:
+
+- Personalized exercise recommendations
+- Health and wellness chat assistance
+- Insurance guidance and information
+- Workout tracking and analysis
+
+This demo showcases the integration of OpenAI's API with a modern web application stack built using Node.js, Fastify, and React.
+
 ## Installation and usage
 
 ```bash
