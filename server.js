@@ -92,10 +92,10 @@ await server.register(fastifySession, {
     httpOnly: true,
     maxAge: 86400,
     sameSite: 'lax',
-    domain: process.env.COOKIE_DOMAIN || undefined,
+    domain: 'ai-health-companion.azurewebsites.net',
     path: '/',
   },
-  saveUninitialized: false,
+  saveUninitialized: true,
   cookieName: 'sessionId',
 });
 
@@ -196,7 +196,16 @@ server.post("/api/summary", async (request, reply) => {
 
 // Chat API
 server.post('/api/chat', async (request, reply) => {
+  // Initialize session if it doesn't exist
+  if (!request.session.id) {
+    request.session.set('initialized', true);
+  }
+  
   const { aiMessage, type, data } = await chatHandler(request, dispatcher);
+  
+  // Ensure session is saved
+  await request.session.save();
+  
   return { message: aiMessage, type, data };
 });
 
