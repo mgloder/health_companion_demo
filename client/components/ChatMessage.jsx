@@ -80,7 +80,7 @@ function renderFormItem(data) {
   const [isSubmit, setIsSubmit] = useState(false);
 
   return (
-    <div className="w-full px-6 py-5 rounded-[1.25rem] bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
+    <div className="mb-4 w-full px-6 py-5 rounded-[1.25rem] bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
       <div className="mb-2">
         <div className="text-xs text-sis-blue">莱主姓名：</div>
         <div className="relative mt-1">

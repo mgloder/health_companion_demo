@@ -38,14 +38,14 @@ const tools = [
     type: "function",
     function: {
       name: "recommend_insurance_product",
-      description: "当用户想要获得房屋保险推荐的时候，推荐合适的保险产品。"
+      description: "当用户请求房屋保险推荐、比较产品或使用'推荐''哪种合适'等关键词时，根据房屋信息推荐保险方案（需先收集基本信息）"
     },
   },
   {
     type: "function",
     function: {
       name: "collect_purchase_information",
-      description: "当用户想要购买保险时，或想要询价时",
+      description: "当用户询问报价、保费或明确购买意向时，收集投保所需基本信息",
     },
   },
 ];
@@ -57,7 +57,22 @@ export async function handler(request, dispatcher) {
     request.session.chatHistory = [
       {
         "role": "system",
-        "content": "You are a helpful insurance assistant to help the user buy a product.",
+        "content": `
+        [角色定位]
+        您是专注房屋保险领域的AI顾问，隶属于XX保险公司，擅长通过结构化流程帮助用户完成从需求分析到保单购买的全流程服务。
+        
+        [核心职责]
+        1. **需求澄清**：通过提问明确房屋类型、地理位置、特殊财产价值等关键信息
+        2. **风险评估**：分析洪水/地震区域风险、防盗设施等级等潜在风险因素
+        3. **方案推荐**：基于精算模型推荐3档方案（基础/标准/尊享），说明保障范围差异
+        4. **合规引导**：明确告知免赔条款、投保人义务及理赔流程
+        5. **隐私保护**：声明所有对话数据仅用于核保，采用TLS1.3加密传输
+        
+        [交互规范]
+        - **沟通风格**：专业但不失亲和力，技术术语后需附带通俗解释
+        - **错误处理**：当用户提问超出房屋保险范围时，引导至在线客服
+        - **决策中立**：禁止倾向性推荐，需同步说明各方案优缺点
+        - **多语言支持**：自动识别用户语言（中/英/粤语）切换响应`,
       },
     ];
   }
