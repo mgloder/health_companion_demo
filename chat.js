@@ -1,81 +1,35 @@
 import OpenAI from "openai";
+import { createActor, waitFor } from "xstate";
+import { healthAssistantMachine, tools } from "./healthAssistantMachine.js";
 
-const STEPS = {
-  COLLECT_USER_SYMPTOMS: 1,
-  SEARCH_POSSIBLE_DISEASE: 2,
-  CONFIRM_DIAGNOSIS: 3
-};
-
-const tools = [
-  {
-    type: "function",
-    function: {
-      name: "collect_user_symptoms_finished",
-      description: "当用户确认已告知所有的病情时"
-    },
-  },
-  {
-    type: "function",
-    function: {
-      name: "search_possible_disease_finished",
-      description: `当用户确认与 Agent 提供的疾病一致时`,
-    },
-  },
-];
-
-function handleToolCalls(response, type, data) {
-  let step;
-  const toolCalls = response.choices[0].message.tool_calls;
+function handleToolCalls(toolCalls, assistantActor) {
   for (const toolCall of toolCalls) {
-    const { name, arguments: args } = toolCall.function;
-    console.log("arguments", args);
+    const { id: toolCallId, function: { name, arguments: args } } = toolCall;
+    console.log("Tool call arguments:", args);
+    const eventData = JSON.parse(args);
 
-    if (name === "collect_user_symptoms_finished") {
-      console.log("collect_user_symptoms_finished");
-      step = STEPS.SEARCH_POSSIBLE_DISEASE;
-
-    } else if (name === "search_possible_disease_finished") {
-      console.log("search_possible_disease_finished");
-      step = STEPS.CONFIRM_DIAGNOSIS;
+    if (name === "collect_user_symptoms") {
+      assistantActor.send({ type: "COLLECT_SYMPTOMS", data: { toolCallId, ...eventData } });
+    } else if (name === "confirm_diagnosis") {
+      console.log("confirm_diagnosis called");
+      assistantActor.send({ type: "confirmDiagnosis", data: { toolCallId, ...eventData } });
     }
   }
-  return { type, data, step };
 }
 
 export async function handler(request, dispatcher) {
   const { message } = request.body;
-  let currentStep = request.session.step;
+  const { session } = request;
 
-  if (!request.session.chatHistory) {
-    request.session.chatHistory = [
+  if (!session.chatHistory) {
+    session.chatHistory = [
       {
-        "role": "system",
-        "content": `
-        You are a helpful health assistant, designed to assist the user in identifying possible diseases and guiding them to the appropriate doctor based on their symptoms. 
-
-        In the conversation:
-        - You will ask one follow-up question based on the user's condition.
-        - You will provide possible diseases based on information from Mayo Clinic.
-
-        Current step: ${currentStep}
-
-        If the user is in the 'COLLECT_USER_SYMPTOMS' phase, respond with:
-        Collecting symptoms, asking follow-up question until collect all symptoms.
-  
-        If the user is in the 'SEARCH_POSSIBLE_DISEASE' phase, respond with:
-        providing possible disease list based on Mayo Clinic.
-        
-        If the user is in the 'CONFIRM_DIAGNOSIS' phase, respond with:
-        Confirming diagnosis, suggesting the next steps for treatment.
-        `,
+        role: "developer",
+        content: `You are a helpful health assistant, designed to assist the user in identifying possible diseases and guiding them to the appropriate doctor based on their symptoms.
+       `,
       },
     ];
   }
-
-  if (!currentStep) {
-    currentStep = STEPS.COLLECT_USER_SYMPTOMS
-  }
-
 
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
@@ -87,49 +41,68 @@ export async function handler(request, dispatcher) {
         }
         return response;
       } catch (error) {
-        console.error('OpenAI API fetch error:', {
+        console.error("OpenAI API fetch error:", {
           url,
           error: error.message,
-          stack: error.stack
+          stack: error.stack,
         });
         throw new Error(`Failed to connect to OpenAI API: ${error.message}`);
       }
-    }
+    },
   });
-  request.session.chatHistory.push({ role: "user", content: message });
+  session.chatHistory.push({ role: "user", content: message });
 
-  console.log(`session history: `, request.session.chatHistory);
+  const assistantActor = createActor(healthAssistantMachine, {
+    input: {
+      askedQuestion: session?.askedQuestion || 0,
+      symptoms: {
+        primary_symptoms: session.symptoms?.primary_symptoms,
+        other_symptoms: session.symptoms?.other_symptoms,
+        duration: session.symptoms?.duration,
+        medication: session.symptoms?.medication,
+      },
+      openai,
+      session,
+    },
+  });
+  assistantActor.start();
 
   let response;
   try {
     response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
-      messages: request.session.chatHistory,
+      messages: session.chatHistory,
       tools,
       tool_choice: "auto",
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error calling OpenAI:", error);
+    throw error;
   }
 
   let type = "text";
   let data = null;
+  let toolMessage = "";
 
   if (response?.choices[0].message.tool_calls) {
-    const result = handleToolCalls(response, type, data);
-    type = result.type;
-    data = result.data;
-    if (result.step) {
-      currentStep = result.step;
+    session.chatHistory.push(response?.choices[0].message);
+    handleToolCalls(response.choices[0].message.tool_calls, assistantActor);
+    // 等待 actor 达到特定状态
+    try {
+      const finalState = await waitFor(assistantActor, (state) => state.matches("success") || state.matches("failed"), {
+        timeout: 10000,
+      });
+      // 在达到期望状态后执行的逻辑
+      console.log('Actor reached the desired state:', finalState.value);
+      toolMessage = finalState.context.session.chatHistory.at(-1).content;
+    } catch (error) {
+      // 处理超时或其他错误
+      console.error("Error waiting for actor to reach desired state:", error);
     }
   }
 
-
-  // 获取 AI 的回复
-  const aiMessage = response?.choices[0].message.content;
-
-  // 将 AI 的回复添加到聊天记录中
-  request.session.chatHistory.push({ role: "assistant", content: aiMessage });
-  request.session.step = currentStep;
-  return { aiMessage, type, data };
+  // 最终返回 AI 回复（优先使用 chatMessage，否则使用工具返回的消息）
+  const chatMessage = response?.choices[0].message.content || toolMessage || "";
+  session.chatHistory.push({ role: "assistant", content: chatMessage });
+  return { aiMessage: chatMessage, type, data };
 }
