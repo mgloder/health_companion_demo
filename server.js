@@ -17,6 +17,8 @@ import { pipeline } from 'stream/promises';
 import { createWriteStream } from 'fs';
 import { mkdir } from 'fs/promises';
 import busboy from 'busboy';
+import OpenAI from 'openai';
+import { readFile } from 'fs/promises';
 
 // Configure logger
 const logger = pino({
@@ -218,72 +220,311 @@ server.addContentTypeParser('multipart/form-data', (request, payload, done) => {
   done(null);
 });
 
-// File upload endpoint
+// In-memory storage for embeddings
+const embeddingsStore = new Map();
+
+// Add these helper functions at the top
+function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
+  const chunks = [];
+  
+  // Approximate page size (2000 chars)
+  const pageSize = maxTokens * 1.8;  // tokens * buffer
+  
+  // Split text into paragraphs
+  const paragraphs = text.split(/\n\s*\n/);
+  
+  for (const paragraph of paragraphs) {
+    // If paragraph is smaller than page size, treat normally
+    if (paragraph.length <= pageSize) {
+      if (chunks.length === 0 || (chunks[chunks.length - 1].length + paragraph.length > pageSize)) {
+        chunks.push(paragraph);
+      } else {
+        chunks[chunks.length - 1] += '\n\n' + paragraph;
+      }
+    } else {
+      // For large paragraphs, split into sentences
+      const sentences = paragraph.match(/[^.!?]+[.!?]+/g) || [paragraph];
+      
+      for (const sentence of sentences) {
+        // If sentence is smaller than page size, treat normally
+        if (sentence.length <= pageSize) {
+          if (chunks.length === 0 || (chunks[chunks.length - 1].length + sentence.length > pageSize)) {
+            chunks.push(sentence.trim());
+          } else {
+            chunks[chunks.length - 1] += ' ' + sentence.trim();
+          }
+        } else {
+          // For large sentences, split into words
+          const words = sentence.split(/\s+/);
+          let currentChunk = '';
+          
+          for (const word of words) {
+            if (currentChunk.length + word.length + 1 > pageSize) {
+              if (currentChunk) {
+                chunks.push(currentChunk.trim());
+              }
+              currentChunk = word;
+            } else {
+              currentChunk += (currentChunk ? ' ' : '') + word;
+            }
+          }
+          
+          if (currentChunk) {
+            if (chunks.length === 0 || (chunks[chunks.length - 1].length + currentChunk.length > pageSize)) {
+              chunks.push(currentChunk.trim());
+            } else {
+              chunks[chunks.length - 1] += ' ' + currentChunk.trim();
+            }
+          }
+        }
+      }
+    }
+  }
+
+  logger.debug({
+    msg: 'Text chunking details',
+    totalChunks: chunks.length,
+    chunkSizes: chunks.map(chunk => ({
+      chars: chunk.length,
+      preview: chunk.substring(0, 100) + '...'
+    }))
+  });
+
+  return chunks;
+}
+
 server.post('/api/upload', async (request, reply) => {
   try {
     const bb = busboy({ headers: request.headers });
     const uploadDir = path.join(__dirname, 'uploads');
     const uploadedFiles = [];
+    const processingPromises = []; // Track all processing promises
+    
+    logger.info({
+      msg: 'Starting file upload process',
+      sessionId: request.session.id,
+      uploadDir
+    });
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      timeout: 30000, // 30 seconds timeout
+      maxRetries: 3,  // Retry failed requests up to 3 times
+      fetch: async (url, options) => {
+        try {
+          logger.debug({
+            msg: 'Making OpenAI API request',
+            url,
+            method: options.method,
+            timeout: options.timeout
+          });
+
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+          const response = await fetch(url, { 
+            ...options, 
+            dispatcher,
+            signal: controller.signal 
+          });
+          
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            logger.error({
+              msg: 'OpenAI API error response',
+              status: response.status,
+              statusText: response.statusText,
+              url,
+              responseBody: await response.text()
+            });
+            throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+          }
+          
+          logger.debug({
+            msg: 'OpenAI API request successful',
+            status: response.status
+          });
+          
+          return response;
+        } catch (error) {
+          logger.error({
+            msg: 'OpenAI API fetch error',
+            error: error.message,
+            stack: error.stack,
+            url,
+            isTimeout: error.name === 'AbortError'
+          });
+
+          // Add delay between retries
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          throw error;
+        }
+      }
+    });
 
     // Ensure upload directory exists
     await mkdir(uploadDir, { recursive: true });
+    logger.debug(`Upload directory ensured: ${uploadDir}`);
 
     // Handle file upload
     bb.on('file', async (name, file, info) => {
       const filename = info.filename;
       const filepath = path.join(uploadDir, filename);
       
-      try {
-        await pipeline(
-          file,
-          createWriteStream(filepath)
-        );
+      // Add each file's processing to our promise array
+      const processPromise = (async () => {
+        try {
+          logger.debug(`Saving file to disk: ${filepath}`);
+          await pipeline(
+            file,
+            createWriteStream(filepath)
+          );
+          
+          const fileContent = await readFile(filepath, 'utf-8');
+          const chunks = chunkText(fileContent);
+          
+          // Get embeddings for each chunk
+          const embeddings = [];
+          for (let i = 0; i < chunks.length; i++) {
+            logger.debug({
+              msg: 'Processing chunk',
+              filename,
+              chunkIndex: i,
+              chunkSize: chunks[i].length,
+              preview: chunks[i].substring(0, 100) + '...'
+            });
 
-        const fileInfo = {
-          filename,
-          filepath,
-          mimetype: info.mimeType,
-          encoding: info.encoding
-        };
+            const embeddingResponse = await openai.embeddings.create({
+              model: "text-embedding-3-small",
+              input: chunks[i],
+            });
 
-        // Store file info in session
-        if (!request.session.uploadedFiles) {
-          request.session.uploadedFiles = [];
+            embeddings.push({
+              chunk: chunks[i],
+              embedding: embeddingResponse.data[0].embedding,
+              chunkIndex: i
+            });
+
+            logger.debug({
+              msg: 'Chunk embedded successfully',
+              filename,
+              chunkIndex: i,
+              embeddingLength: embeddingResponse.data[0].embedding.length
+            });
+          }
+
+          const fileInfo = {
+            filename,
+            filepath,
+            mimetype: info.mimeType,
+            encoding: info.encoding,
+            chunks: embeddings
+          };
+
+          // Store file info and embeddings
+          if (!request.session.uploadedFiles) {
+            request.session.uploadedFiles = [];
+          }
+          request.session.uploadedFiles.push(fileInfo);
+          uploadedFiles.push(fileInfo);
+
+          if (!embeddingsStore.has(request.session.id)) {
+            embeddingsStore.set(request.session.id, []);
+          }
+          embeddingsStore.get(request.session.id).push({
+            filename,
+            chunks: embeddings
+          });
+
+          logger.info({
+            msg: 'File processed and embedded successfully',
+            filename,
+            sessionId: request.session.id,
+            numberOfChunks: chunks.length
+          });
+          
+        } catch (err) {
+          logger.error({
+            msg: 'Error processing file',
+            filename,
+            error: err.message,
+            stack: err.stack
+          });
+          throw err;
         }
-        request.session.uploadedFiles.push(fileInfo);
-        uploadedFiles.push(fileInfo);
+      })();
 
-      } catch (err) {
-        logger.error({ err }, 'Error saving file');
-        throw err;
-      }
+      processingPromises.push(processPromise);
     });
 
     // Handle end of upload
     const uploadPromise = new Promise((resolve, reject) => {
-      bb.on('finish', () => resolve());
-      bb.on('error', (err) => reject(err));
+      bb.on('finish', resolve);
+      bb.on('error', reject);
     });
 
     // Pipe request to busboy
     request.raw.pipe(bb);
+    
+    // Wait for upload to complete
     await uploadPromise;
+    
+    // Wait for all file processing to complete
+    await Promise.all(processingPromises);
+    
+    // Save session after all processing is complete
     await request.session.save();
+
+    logger.info({
+      msg: 'All files processed successfully',
+      sessionId: request.session.id,
+      totalFiles: uploadedFiles.length,
+      embeddingsStored: embeddingsStore.get(request.session.id)?.length || 0
+    });
 
     return {
       success: true,
-      message: `Successfully uploaded ${uploadedFiles.length} files`,
-      files: uploadedFiles
+      message: `Successfully uploaded and processed ${uploadedFiles.length} files`,
+      files: uploadedFiles.map(({ filename, mimetype }) => ({
+        filename,
+        mimetype
+      }))
     };
 
   } catch (error) {
-    logger.error({ err: error }, "Error uploading files");
+    logger.error({
+      msg: "Upload process failed",
+      error: error.message,
+      stack: error.stack,
+      sessionId: request.session?.id
+    });
     reply.code(500).send({ 
       success: false,
       error: "Failed to upload files",
       details: error.message 
     });
   }
+});
+
+// Helper function to get embeddings for a session
+server.get('/api/embeddings/:sessionId', async (request, reply) => {
+  const sessionId = request.params.sessionId;
+  const embeddings = embeddingsStore.get(sessionId);
+  
+  if (!embeddings) {
+    reply.code(404).send({
+      success: false,
+      error: 'No embeddings found for this session'
+    });
+    return;
+  }
+
+  return {
+    success: true,
+    embeddings: embeddings
+  };
 });
 
 // Add this proxy configuration before any routes
