@@ -7,6 +7,7 @@ import axa from "../assets/axa.png";
 import bluecross from "../assets/bluecross.png";
 import hongleong from "../assets/hongleong.png";
 import { useState } from "react";
+import UploadCard from './UploadCard';
 
 
 const imgMap = {
@@ -212,6 +213,15 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
 
     if (type === "confirm") {
       return renderConfirmItem(content, onAction);
+    }
+
+    if (type === "upload-file") {
+      return (
+        <div className="flex flex-col gap-3">
+          <p className="text-gray-800">{content}</p>
+          <UploadCard onUpload={(files) => onAction('upload-files', files)} />
+        </div>
+      );
     }
 
     return <p className="text-[15px]">{content}</p>;

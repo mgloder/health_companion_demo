@@ -50,13 +50,13 @@ export default function InsuranceChat() {
         }).then((resp) =>
           resp.json(),
         ).then((respObj) => {
-          const { type, message, data} = respObj
+          const { type, message, data, uploadFile } = respObj;
           const newMessage = {
             id: chatLog.length + 1,
             isUser: false,
             content: message,
             data,
-            type,
+            type: uploadFile ? 'upload-file' : type,
             timestamp: new Date().toISOString(),
           };
           setChatLog([...chatLog, newMessage]);

@@ -13,6 +13,10 @@ import { handler as parseExerciseHandler } from "./parse-exercise.js";
 import { handler as summaryCheckinHandler } from "./summary-checkin.js";
 import { handler as chatHandler } from "./chat.js";
 import crypto from "crypto";
+import { pipeline } from 'stream/promises';
+import { createWriteStream } from 'fs';
+import { mkdir } from 'fs/promises';
+import busboy from 'busboy';
 
 // Configure logger
 const logger = pino({
@@ -207,6 +211,79 @@ server.post('/api/chat', async (request, reply) => {
   await request.session.save();
   
   return { message: aiMessage, type, data };
+});
+
+// Add this before the upload route
+server.addContentTypeParser('multipart/form-data', (request, payload, done) => {
+  done(null);
+});
+
+// File upload endpoint
+server.post('/api/upload', async (request, reply) => {
+  try {
+    const bb = busboy({ headers: request.headers });
+    const uploadDir = path.join(__dirname, 'uploads');
+    const uploadedFiles = [];
+
+    // Ensure upload directory exists
+    await mkdir(uploadDir, { recursive: true });
+
+    // Handle file upload
+    bb.on('file', async (name, file, info) => {
+      const filename = info.filename;
+      const filepath = path.join(uploadDir, filename);
+      
+      try {
+        await pipeline(
+          file,
+          createWriteStream(filepath)
+        );
+
+        const fileInfo = {
+          filename,
+          filepath,
+          mimetype: info.mimeType,
+          encoding: info.encoding
+        };
+
+        // Store file info in session
+        if (!request.session.uploadedFiles) {
+          request.session.uploadedFiles = [];
+        }
+        request.session.uploadedFiles.push(fileInfo);
+        uploadedFiles.push(fileInfo);
+
+      } catch (err) {
+        logger.error({ err }, 'Error saving file');
+        throw err;
+      }
+    });
+
+    // Handle end of upload
+    const uploadPromise = new Promise((resolve, reject) => {
+      bb.on('finish', () => resolve());
+      bb.on('error', (err) => reject(err));
+    });
+
+    // Pipe request to busboy
+    request.raw.pipe(bb);
+    await uploadPromise;
+    await request.session.save();
+
+    return {
+      success: true,
+      message: `Successfully uploaded ${uploadedFiles.length} files`,
+      files: uploadedFiles
+    };
+
+  } catch (error) {
+    logger.error({ err: error }, "Error uploading files");
+    reply.code(500).send({ 
+      success: false,
+      error: "Failed to upload files",
+      details: error.message 
+    });
+  }
 });
 
 // Add this proxy configuration before any routes

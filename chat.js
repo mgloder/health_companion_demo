@@ -41,6 +41,8 @@ export async function handler(request, dispatcher) {
     ];
   }
 
+  // If current step is 0, return upload-file response without calling OpenAI
+
   const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
     fetch: async (url, options) => {
@@ -61,7 +63,6 @@ export async function handler(request, dispatcher) {
     },
   });
   session.chatHistory.push({ role: "user", content: message });
-
   const chatManager = new ChatManager({ openai, session });
 
   let response;
