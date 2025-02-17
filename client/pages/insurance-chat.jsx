@@ -22,23 +22,6 @@ function Header({ onProfileClick }) {
   );
 }
 
-// const DEFAULT_MESSAGE = [
-//   {
-//     id: 1,
-//     isUser: false,
-//     content: "form_example.pdf",
-//     type: "pdf",
-//     pdfUrl: pdfFile,
-//     timestamp: "2025-01-23T14:30:00Z",
-//   },
-//   {
-//     id: 2,
-//     isUser: false,
-//     content: "Here's our latest insurance plan overview.",
-//     timestamp: "2025-01-23T14:30:00Z",
-//   },
-// ];
-
 export default function InsuranceChat() {
   const [chatLog, setChatLog] = useState([]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
@@ -97,6 +80,18 @@ export default function InsuranceChat() {
     sessionStorage.setItem("insuranceChatLog", JSON.stringify([...chatLog, newMessage]));
   };
 
+  const handleMessageAction = (message) => {
+    const newMessage = {
+      id: chatLog.length + 1,
+      isUser: true,
+      content: message,
+      type: "hidden",
+      timestamp: new Date().toISOString(),
+    };
+    setChatLog([...chatLog, newMessage]);
+    sessionStorage.setItem("insuranceChatLog", JSON.stringify([...chatLog, newMessage]));
+  };
+
   return (
     <div className="flex flex-col min-h-screen h-screen bg-gray-50">
       <Header onProfileClick={() => setIsSliderOpen(true)} />
@@ -111,6 +106,7 @@ export default function InsuranceChat() {
             type={message.type}
             pdfUrl={message.pdfUrl}
             data={message.data}
+            onAction={handleMessageAction}
           />
         ))}
       </div>

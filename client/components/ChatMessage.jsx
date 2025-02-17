@@ -1,4 +1,4 @@
-import { CheckCircle } from "react-feather";
+import { CheckCircle, XCircle } from "react-feather";
 
 import ToggleSwitch from "./ToggleSwitch.jsx";
 
@@ -157,7 +157,7 @@ function renderFormItem(data) {
     ;
 }
 
-function renderConfirmItem(content) {
+function renderConfirmItem(content, onAction) {
   const [isClicked, setIsClicked] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
@@ -168,16 +168,24 @@ function renderConfirmItem(content) {
           isClicked ?
             <>
               <div className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
-                <CheckCircle className="text-sis-blue" size={17} />
+                { isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> : <XCircle className="text-sis-blue" size={17} />}
                 { isConfirmed ? "已确认" : "已否认" }
               </div>
             </> :
             <>
               <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
-                      onClick={() => setIsClicked(true)}>确认
+                      onClick={() => {
+                        setIsClicked(true);
+                        setIsConfirmed(true);
+                        onAction("我确认与前面所提到的病情一致");
+                      }}>确认
               </button>
               <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
-                      onClick={() => setIsClicked(true)}>否
+                      onClick={() => {
+                        setIsClicked(true);
+                        setIsConfirmed(false);
+                        onAction("我否认与前面所提到的病情一致");
+                      }}>否
               </button>
             </>
         }
@@ -187,7 +195,10 @@ function renderConfirmItem(content) {
   );
 }
 
-export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data }) {
+export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data, onAction }) {
+  if (type === "hidden") {
+    return <></>;
+  }
   const renderContent = () => {
     if (type === "pdf") {
       return renderPdfItem(pdfUrl, content);
@@ -200,7 +211,7 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
     }
 
     if (type === "confirm") {
-      return renderConfirmItem(content);
+      return renderConfirmItem(content, onAction);
     }
 
     return <p className="text-[15px]">{content}</p>;
