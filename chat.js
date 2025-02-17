@@ -35,7 +35,7 @@ export async function handler(request, dispatcher) {
     session.chatHistory = [
       {
         role: "developer",
-        content: `You are a helpful health assistant, designed to assist the user in identifying possible diseases and guiding them to the appropriate doctor based on their symptoms.
+        content: `You are a helpful health assistant, designed to assist the user in identifying possible diseases
        `,
       },
     ];

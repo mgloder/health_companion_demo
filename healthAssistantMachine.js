@@ -51,7 +51,7 @@ export class ChatManager {
     this.session.askedQuestions = this.getAskedQuestions() + 1;
 
     if (this.session.askedQuestions < MAX_FOLLOW_UP_QUESTIONS) {
-      this.addToolChatMessage(toolCallId, `收集更多病症的信息`);
+      this.addToolChatMessage(toolCallId, `请根据用户的输入信息，提问更具提的问题`);
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
       this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病`);
