@@ -1,20 +1,29 @@
 import OpenAI from "openai";
-import { createActor, waitFor } from "xstate";
-import { healthAssistantMachine, tools } from "./healthAssistantMachine.js";
+import { ChatManager, STEPS } from "./healthAssistantMachine.js";
 
-function handleToolCalls(toolCalls, assistantActor) {
-  for (const toolCall of toolCalls) {
-    const { id: toolCallId, function: { name, arguments: args } } = toolCall;
-    console.log("Tool call arguments:", args);
-    const eventData = JSON.parse(args);
+async function handleToolCalls(message, chatManager) {
+  let toolMessage = '';
+  let type = 'text';
+  chatManager.addChatMessage(message);
+  for (const toolCall of message.tool_calls) {
+    const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
+    console.log(`${name} tool call arguments:`, argStr);
+    const args = JSON.parse(argStr);
 
     if (name === "collect_user_symptoms") {
-      assistantActor.send({ type: "COLLECT_SYMPTOMS", data: { toolCallId, ...eventData } });
-    } else if (name === "confirm_diagnosis") {
-      console.log("confirm_diagnosis called");
-      assistantActor.send({ type: "confirmDiagnosis", data: { toolCallId, ...eventData } });
+      toolMessage = await chatManager.handleCollectInfo(toolCallId, args);
+      type = chatManager.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES ? 'confirm' : 'text';
+    }
+
+    if (name === "user_confirm_diagnosis") {
+      toolMessage = await chatManager.handleConfirmDiagnosis(toolCallId, args);
+    }
+
+    if (name === "user_reject_diagnosis") {
+      toolMessage = await chatManager.handleRejectDiagnosis(toolCallId, args)
     }
   }
+  return { type, toolMessage };
 }
 
 export async function handler(request, dispatcher) {
@@ -52,27 +61,14 @@ export async function handler(request, dispatcher) {
   });
   session.chatHistory.push({ role: "user", content: message });
 
-  const assistantActor = createActor(healthAssistantMachine, {
-    input: {
-      askedQuestion: session?.askedQuestion || 0,
-      symptoms: {
-        primary_symptoms: session.symptoms?.primary_symptoms,
-        other_symptoms: session.symptoms?.other_symptoms,
-        duration: session.symptoms?.duration,
-        medication: session.symptoms?.medication,
-      },
-      openai,
-      session,
-    },
-  });
-  assistantActor.start();
+  const chatManager = new ChatManager({ openai, session });
 
   let response;
   try {
     response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: session.chatHistory,
-      tools,
+      tools: chatManager.getTools(),
       tool_choice: "auto",
     });
   } catch (error) {
@@ -85,24 +81,14 @@ export async function handler(request, dispatcher) {
   let toolMessage = "";
 
   if (response?.choices[0].message.tool_calls) {
-    session.chatHistory.push(response?.choices[0].message);
-    handleToolCalls(response.choices[0].message.tool_calls, assistantActor);
-    // 等待 actor 达到特定状态
-    try {
-      const finalState = await waitFor(assistantActor, (state) => state.matches("success") || state.matches("failed"), {
-        timeout: 10000,
-      });
-      // 在达到期望状态后执行的逻辑
-      console.log('Actor reached the desired state:', finalState.value);
-      toolMessage = finalState.context.session.chatHistory.at(-1).content;
-    } catch (error) {
-      // 处理超时或其他错误
-      console.error("Error waiting for actor to reach desired state:", error);
-    }
+    const ret = await handleToolCalls(response.choices[0].message, chatManager);
+    toolMessage = ret.toolMessage;
+    type = ret.type;
+  } else {
+    session.chatHistory.push({ role: "assistant", content: response?.choices[0].message.content });
   }
 
   // 最终返回 AI 回复（优先使用 chatMessage，否则使用工具返回的消息）
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
-  session.chatHistory.push({ role: "assistant", content: chatMessage });
   return { aiMessage: chatMessage, type, data };
 }

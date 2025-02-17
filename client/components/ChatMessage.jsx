@@ -157,6 +157,20 @@ function renderFormItem(data) {
     ;
 }
 
+function renderConfirmItem(content) {
+  const [isSubmit, setIsSubmit] = useState(false);
+  return (
+    <div className="">
+      <p className="text-[15px]">{content}</p>
+      <div className="mt-1 float-right">
+        <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue">确认</button>
+        <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue">否</button>
+      </div>
+
+    </div>
+  );
+}
+
 export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data }) {
   const renderContent = () => {
     if (type === "pdf") {
@@ -168,6 +182,11 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
     if (type === "form") {
       return (<div><p>OK!請麻烦填寫资料👇</p></div>);
     }
+
+    if (type === "confirm") {
+      return renderConfirmItem(content);
+    }
+
     return <p className="text-[15px]">{content}</p>;
   };
 
