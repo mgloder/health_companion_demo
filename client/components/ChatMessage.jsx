@@ -150,7 +150,7 @@ function renderFormItem(data) {
         className="w-full rounded-[1.25rem] bg-gradient-to-r from-sis-blue to-sis-blue-420 text-sm leading-8 text-white"
         onClick={() => setIsSubmit(!isSubmit)}
       >
-        {isSubmit ? "已提交": "提交"}
+        {isSubmit ? "已提交" : "提交"}
       </button>
     </div>
   )
@@ -158,13 +158,29 @@ function renderFormItem(data) {
 }
 
 function renderConfirmItem(content) {
-  const [isSubmit, setIsSubmit] = useState(false);
+  const [isClicked, setIsClicked] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
       <p className="text-[15px]">{content}</p>
       <div className="mt-1 float-right">
-        <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue">确认</button>
-        <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue">否</button>
+        {
+          isClicked ?
+            <>
+              <div className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
+                <CheckCircle className="text-sis-blue" size={17} />
+                { isConfirmed ? "已确认" : "已否认" }
+              </div>
+            </> :
+            <>
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
+                      onClick={() => setIsClicked(true)}>确认
+              </button>
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
+                      onClick={() => setIsClicked(true)}>否
+              </button>
+            </>
+        }
       </div>
 
     </div>

@@ -1,4 +1,4 @@
-const MAX_FOLLOW_UP_QUESTIONS = 2;
+const MAX_FOLLOW_UP_QUESTIONS = 3;
 
 const COLLECT_USER_SYMPTOMS = {
   type: "function",

@@ -20,7 +20,8 @@ async function handleToolCalls(message, chatManager) {
     }
 
     if (name === "user_reject_diagnosis") {
-      toolMessage = await chatManager.handleRejectDiagnosis(toolCallId, args)
+      toolMessage = await chatManager.handleRejectDiagnosis(toolCallId, args);
+      type = chatManager.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES ? 'confirm' : 'text';
     }
   }
   return { type, toolMessage };
