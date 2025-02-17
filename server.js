@@ -106,7 +106,67 @@ await server.register(fastifySession, {
 });
 
 await server.vite.ready();
-logger.info("Vite is ready");
+
+// Initialize OpenAI client once
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  timeout: 30000, // 30 seconds timeout
+  maxRetries: 3,  // Retry failed requests up to 3 times
+  fetch: async (url, options) => {
+    try {
+      logger.debug({
+        msg: 'Making OpenAI API request',
+        url,
+        method: options.method,
+        timeout: options.timeout
+      });
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const response = await fetch(url, { 
+        ...options, 
+        dispatcher,
+        signal: controller.signal 
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        logger.error({
+          msg: 'OpenAI API error response',
+          status: response.status,
+          statusText: response.statusText,
+          url,
+          responseBody: await response.text()
+        });
+        throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+      }
+      
+      logger.debug({
+        msg: 'OpenAI API request successful',
+        status: response.status
+      });
+      
+      return response;
+    } catch (error) {
+      logger.error({
+        msg: 'OpenAI API fetch error',
+        error: error.message,
+        stack: error.stack,
+        url,
+        isTimeout: error.name === 'AbortError'
+      });
+
+      // Add delay between retries
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      throw error;
+    }
+  }
+});
+
+logger.info("OpenAI client initialized");
 
 server.get("/api-env", async (request, reply) => {
   return {
@@ -298,70 +358,13 @@ server.post('/api/upload', async (request, reply) => {
     const bb = busboy({ headers: request.headers });
     const uploadDir = path.join(__dirname, 'uploads');
     const uploadedFiles = [];
-    const processingPromises = []; // Track all processing promises
+    const processingPromises = []; 
+    const HARDCODED_KEY = 1;  // Hardcoded key for embeddings store
     
     logger.info({
       msg: 'Starting file upload process',
-      sessionId: request.session.id,
-      uploadDir
-    });
-
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      timeout: 30000, // 30 seconds timeout
-      maxRetries: 3,  // Retry failed requests up to 3 times
-      fetch: async (url, options) => {
-        try {
-          logger.debug({
-            msg: 'Making OpenAI API request',
-            url,
-            method: options.method,
-            timeout: options.timeout
-          });
-
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
-
-          const response = await fetch(url, { 
-            ...options, 
-            dispatcher,
-            signal: controller.signal 
-          });
-          
-          clearTimeout(timeoutId);
-          
-          if (!response.ok) {
-            logger.error({
-              msg: 'OpenAI API error response',
-              status: response.status,
-              statusText: response.statusText,
-              url,
-              responseBody: await response.text()
-            });
-            throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
-          }
-          
-          logger.debug({
-            msg: 'OpenAI API request successful',
-            status: response.status
-          });
-          
-          return response;
-        } catch (error) {
-          logger.error({
-            msg: 'OpenAI API fetch error',
-            error: error.message,
-            stack: error.stack,
-            url,
-            isTimeout: error.name === 'AbortError'
-          });
-
-          // Add delay between retries
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          
-          throw error;
-        }
-      }
+      uploadDir,
+      storeKey: HARDCODED_KEY
     });
 
     // Ensure upload directory exists
@@ -373,7 +376,6 @@ server.post('/api/upload', async (request, reply) => {
       const filename = info.filename;
       const filepath = path.join(uploadDir, filename);
       
-      // Add each file's processing to our promise array
       const processPromise = (async () => {
         try {
           logger.debug(`Saving file to disk: ${filepath}`);
@@ -423,17 +425,18 @@ server.post('/api/upload', async (request, reply) => {
             chunks: embeddings
           };
 
-          // Store file info and embeddings
+          // Store file info in session
           if (!request.session.uploadedFiles) {
             request.session.uploadedFiles = [];
           }
           request.session.uploadedFiles.push(fileInfo);
           uploadedFiles.push(fileInfo);
 
-          if (!embeddingsStore.has(request.session.id)) {
-            embeddingsStore.set(request.session.id, []);
+          // Use hardcoded key for embeddings store
+          if (!embeddingsStore.has(HARDCODED_KEY)) {
+            embeddingsStore.set(HARDCODED_KEY, []);
           }
-          embeddingsStore.get(request.session.id).push({
+          embeddingsStore.get(HARDCODED_KEY).push({
             filename,
             chunks: embeddings
           });
@@ -441,7 +444,7 @@ server.post('/api/upload', async (request, reply) => {
           logger.info({
             msg: 'File processed and embedded successfully',
             filename,
-            sessionId: request.session.id,
+            storeKey: HARDCODED_KEY,
             numberOfChunks: chunks.length
           });
           
@@ -479,9 +482,9 @@ server.post('/api/upload', async (request, reply) => {
 
     logger.info({
       msg: 'All files processed successfully',
-      sessionId: request.session.id,
+      storeKey: HARDCODED_KEY,
       totalFiles: uploadedFiles.length,
-      embeddingsStored: embeddingsStore.get(request.session.id)?.length || 0
+      embeddingsStored: embeddingsStore.get(HARDCODED_KEY)?.length || 0
     });
 
     return {
@@ -497,8 +500,7 @@ server.post('/api/upload', async (request, reply) => {
     logger.error({
       msg: "Upload process failed",
       error: error.message,
-      stack: error.stack,
-      sessionId: request.session?.id
+      stack: error.stack
     });
     reply.code(500).send({ 
       success: false,
@@ -508,15 +510,15 @@ server.post('/api/upload', async (request, reply) => {
   }
 });
 
-// Helper function to get embeddings for a session
-server.get('/api/embeddings/:sessionId', async (request, reply) => {
-  const sessionId = request.params.sessionId;
-  const embeddings = embeddingsStore.get(sessionId);
+// Update the embeddings endpoint to use hardcoded key
+server.get('/api/embeddings', async (request, reply) => {
+  const HARDCODED_KEY = 1;
+  const embeddings = embeddingsStore.get(HARDCODED_KEY);
   
   if (!embeddings) {
     reply.code(404).send({
       success: false,
-      error: 'No embeddings found for this session'
+      error: 'No embeddings found'
     });
     return;
   }
@@ -534,6 +536,133 @@ server.addHook('onRequest', (request, reply, done) => {
     request.raw.protocol = 'https';
   }
   done();
+});
+
+// Add this helper function to calculate cosine similarity
+function cosineSimilarity(vecA, vecB) {
+  const dotProduct = vecA.reduce((sum, a, i) => sum + a * vecB[i], 0);
+  const magnitudeA = Math.sqrt(vecA.reduce((sum, a) => sum + a * a, 0));
+  const magnitudeB = Math.sqrt(vecB.reduce((sum, b) => sum + b * b, 0));
+  return dotProduct / (magnitudeA * magnitudeB);
+}
+
+// Add search API endpoint
+server.post('/api/search', async (request, reply) => {
+  try {
+    const { query } = request.body;
+    const HARDCODED_KEY = 1;
+    
+    logger.info({
+      msg: 'Processing search request',
+      query,
+      storeKey: HARDCODED_KEY
+    });
+
+    const storedEmbeddings = embeddingsStore.get(HARDCODED_KEY);
+    if (!storedEmbeddings) {
+      logger.warn('No embeddings found in store');
+      return {
+        success: false,
+        error: 'No documents available for search'
+      };
+    }
+
+    // Step 1: Use GPT to identify relevant files
+
+
+    const fileList = storedEmbeddings.map(file => file.filename).join('\n');
+    
+    const fileSelectionResponse = await openai.chat.completions.create({
+      model: "gpt-4o-mini",
+      messages: [
+        {
+          role: "system",
+          content: "You are a helpful assistant that identifies the most relevant files for a query. Respond only with the filenames, separated by commas, in order of relevance. Maximum 3 files."
+        },
+        {
+          role: "user",
+          content: `Available files:\n${fileList}\n\nQuery: ${query}\n\nWhich files are most relevant to this query? List only filenames, separated by commas.`
+        }
+      ],
+      temperature: 0.3,
+    });
+
+    const relevantFiles = fileSelectionResponse.choices[0].message.content
+      .split(',')
+      .map(filename => filename.trim())
+      .filter(filename => storedEmbeddings.some(f => f.filename === filename))
+      .slice(0, 3);
+
+    logger.debug({
+      msg: 'GPT selected relevant files',
+      files: relevantFiles
+    });
+
+    // Step 2: Get embeddings for the query
+    const queryEmbedding = await openai.embeddings.create({
+      model: "text-embedding-3-small",
+      input: query,
+    });
+
+    // Step 3: Find the most relevant chunks from selected files
+    const relevantChunks = [];
+    
+    for (const filename of relevantFiles) {
+      const file = storedEmbeddings.find(f => f.filename === filename);
+      if (!file) continue;
+
+      // Get chunk similarities for this file
+      const chunkSimilarities = file.chunks.map(chunk => ({
+        filename: file.filename,
+        chunk: chunk.chunk,
+        chunkIndex: chunk.chunkIndex,
+        similarity: cosineSimilarity(chunk.embedding, queryEmbedding.data[0].embedding)
+      }));
+
+      // Get top 3 chunks from this file
+      const topChunks = chunkSimilarities
+        .sort((a, b) => b.similarity - a.similarity)
+        .slice(0, 3);
+
+      relevantChunks.push(...topChunks);
+    }
+
+    // Sort all chunks by similarity and get top 3 overall
+    const finalResults = relevantChunks
+      .sort((a, b) => b.similarity - a.similarity)
+      .slice(0, 3);
+
+    logger.info({
+      msg: 'Search completed successfully',
+      query,
+      selectedFiles: relevantFiles,
+      numResults: finalResults.length,
+      topScores: finalResults.map(r => r.similarity)
+    });
+
+    return {
+      success: true,
+      results: finalResults.map(result => ({
+        filename: result.filename,
+        chunk: result.chunk,
+        similarity: result.similarity,
+        chunkIndex: result.chunkIndex
+      }))
+    };
+
+  } catch (error) {
+    logger.error({
+      msg: 'Search failed',
+      error: error.message,
+      stack: error.stack
+    });
+
+    reply.code(500).send({
+      success: false,
+      error: 'Search failed',
+      details: error.message
+    });
+  }
 });
 
 // Server startup with logging
