@@ -1,4 +1,4 @@
-import os from'os';
+import os from 'os';
 import Fastify from "fastify";
 import FastifyVite from "@fastify/vite";
 import fastifyEnv from "@fastify/env";
@@ -17,12 +17,9 @@ import { handler as chatHandler } from "./chat.js";
 import crypto from "crypto";
 import { pipeline } from 'stream/promises';
 import { createWriteStream, createReadStream, readFileSync, unlink } from 'fs';
-import { mkdir } from 'fs/promises';
+import { mkdir, readFile, writeFile } from 'fs/promises';
 import busboy from 'busboy';
 import OpenAI, { toFile } from 'openai';
-import { readFile } from 'fs/promises';
-import OpenAI from 'openai';
-import { readFile, writeFile } from 'fs/promises';
 
 // Configure logger
 const logger = pino({
@@ -279,8 +276,9 @@ server.post('/api/chat', async (request, reply) => {
   return { message: aiMessage, type, data };
 });
 
-// In-memory storage for embeddings
+// Initialize data store and constants at the top
 const embeddingsStore = new Map();
+const HARDCODED_KEY = 1;
 
 // Add these helper functions at the top
 function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
@@ -439,10 +437,6 @@ async function loadDataFromFiles() {
   }
 }
 
-// Initialize data store from files
-const embeddingsStore = new Map();
-const HARDCODED_KEY = 1;
-
 // Load existing data when server starts
 try {
   const savedData = await loadDataFromFiles();
@@ -457,26 +451,17 @@ try {
   embeddingsStore.set(HARDCODED_KEY, []);
 }
 
-// Update the upload endpoint to save both embeddings and content
+// Fix upload endpoint to properly handle file processing
 server.post('/api/upload', async (request, reply) => {
   try {
     const bb = busboy({ headers: request.headers });
     const uploadDir = path.join(__dirname, 'uploads');
     const uploadedFiles = [];
     const processingPromises = [];
-    const HARDCODED_KEY = 1;  // Hardcoded key for embeddings store
-
-    logger.info({
-      msg: 'Starting file upload process',
-      uploadDir,
-      storeKey: HARDCODED_KEY
-    });
 
     // Ensure upload directory exists
     await mkdir(uploadDir, { recursive: true });
-    logger.debug(`Upload directory ensured: ${uploadDir}`);
 
-    // Handle file upload
     bb.on('file', async (name, file, info) => {
       const filename = info.filename;
       const filepath = path.join(uploadDir, filename);
@@ -522,22 +507,7 @@ server.post('/api/upload', async (request, reply) => {
             });
           }
 
-          const fileInfo = {
-            filename,
-            filepath,
-            mimetype: info.mimeType,
-            encoding: info.encoding,
-            chunks: embeddings
-          };
-
-          // Store file info in session
-          if (!request.session.uploadedFiles) {
-            request.session.uploadedFiles = [];
-          }
-          request.session.uploadedFiles.push(fileInfo);
-          uploadedFiles.push(fileInfo);
-
-          // Use hardcoded key for embeddings store
+          // Store embeddings
           if (!embeddingsStore.has(HARDCODED_KEY)) {
             embeddingsStore.set(HARDCODED_KEY, []);
           }
@@ -546,12 +516,13 @@ server.post('/api/upload', async (request, reply) => {
             chunks: embeddings
           });
 
-          logger.info({
-            msg: 'File processed and embedded successfully',
+          uploadedFiles.push({
             filename,
-            storeKey: HARDCODED_KEY,
-            numberOfChunks: chunks.length
+            mimetype: info.mimeType
           });
+
+          // Clean up uploaded file
+          await unlink(filepath);
 
         } catch (err) {
           logger.error({
@@ -567,42 +538,22 @@ server.post('/api/upload', async (request, reply) => {
       processingPromises.push(processPromise);
     });
 
-    // Handle end of upload
     const uploadPromise = new Promise((resolve, reject) => {
       bb.on('finish', resolve);
       bb.on('error', reject);
     });
 
-    // Pipe request to busboy
     request.raw.pipe(bb);
-
-    // Wait for upload to complete
     await uploadPromise;
-
-    // Wait for all file processing to complete
     await Promise.all(processingPromises);
 
-
-    // Save all data to files
+    // Save to disk
     await saveDataToFiles(embeddingsStore.get(HARDCODED_KEY));
-
-    // Save session after all processing is complete
-    await request.session.save();
-
-    logger.info({
-      msg: 'All files processed and data saved',
-      storeKey: HARDCODED_KEY,
-      totalFiles: uploadedFiles.length,
-      totalChunks: embeddingsStore.get(HARDCODED_KEY)?.reduce((sum, file) => sum + file.chunks.length, 0) || 0
-    });
 
     return {
       success: true,
       message: `Successfully uploaded and processed ${uploadedFiles.length} files`,
-      files: uploadedFiles.map(({ filename, mimetype }) => ({
-        filename,
-        mimetype
-      }))
+      files: uploadedFiles
     };
 
   } catch (error) {
