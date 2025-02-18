@@ -24,13 +24,20 @@ export async function createChatCompletion({
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY environment variable is required');
   }
-  const proxyUrl = 'http://127.0.0.1:1087';
-  const proxyAgent = new HttpsProxyAgent(proxyUrl);
-  const openai = new OpenAI({
+
+  let openaiConfig = {
     apiKey: process.env.OPENAI_API_KEY,
-    httpAgent: proxyAgent,
-    httpsAgent: proxyAgent
-  });
+  };
+
+  // Only use proxy agent in development environment
+  if (process.env.NODE_ENV === 'development') {
+    const proxyUrl = 'http://127.0.0.1:1087';
+    const proxyAgent = new HttpsProxyAgent(proxyUrl);
+    openaiConfig.httpAgent = proxyAgent;
+    openaiConfig.httpsAgent = proxyAgent;
+  }
+
+  const openai = new OpenAI(openaiConfig);
 
   try {
     const completion = await openai.chat.completions.create({
@@ -41,7 +48,7 @@ export async function createChatCompletion({
         tool_choice: tool_choice
     });
 
-    return completion
+    return completion;
   } catch (error) {
       console.error('Error in chat completion:', error);
       throw error;
