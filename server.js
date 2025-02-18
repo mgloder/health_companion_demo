@@ -451,7 +451,21 @@ try {
   embeddingsStore.set(HARDCODED_KEY, []);
 }
 
-// Fix upload endpoint to properly handle file processing
+// Just register the plugin once
+await server.register(fastifyMultipart, {
+  limits: {
+    fieldNameSize: 100, // Max field name size in bytes
+    fieldSize: 100,     // Max field value size in bytes
+    fields: 10,         // Max number of non-file fields
+    fileSize: 100 * 1024 * 1024, // For 100MB files
+    files: 10,          // Max number of file fields
+    headerPairs: 2000   // Max number of header key=>value pairs
+  }
+});
+
+logger.debug("Multipart plugin registered");
+
+// Then your existing upload endpoint
 server.post('/api/upload', async (request, reply) => {
   try {
     const bb = busboy({ headers: request.headers });
@@ -507,11 +521,24 @@ server.post('/api/upload', async (request, reply) => {
             });
           }
 
-          // Store embeddings
+          // Store embeddings with duplicate handling
           if (!embeddingsStore.has(HARDCODED_KEY)) {
             embeddingsStore.set(HARDCODED_KEY, []);
           }
-          embeddingsStore.get(HARDCODED_KEY).push({
+          
+          // Remove existing file data if it exists
+          const currentData = embeddingsStore.get(HARDCODED_KEY);
+          const fileIndex = currentData.findIndex(f => f.filename === filename);
+          if (fileIndex !== -1) {
+            currentData.splice(fileIndex, 1);
+            logger.info({
+              msg: 'Removed existing file data',
+              filename
+            });
+          }
+          
+          // Add new file data
+          currentData.push({
             filename,
             chunks: embeddings
           });
@@ -521,8 +548,25 @@ server.post('/api/upload', async (request, reply) => {
             mimetype: info.mimeType
           });
 
-          // Clean up uploaded file
-          await unlink(filepath);
+          // Clean up uploaded file using fs.unlink with callback
+          try {
+            await new Promise((resolve, reject) => {
+              unlink(filepath, (err) => {
+                if (err) reject(err);
+                else resolve();
+              });
+            });
+            logger.debug({
+              msg: 'Temporary file cleaned up',
+              filepath
+            });
+          } catch (unlinkError) {
+            logger.warn({
+              msg: 'Failed to clean up temporary file',
+              filepath,
+              error: unlinkError.message
+            });
+          }
 
         } catch (err) {
           logger.error({
