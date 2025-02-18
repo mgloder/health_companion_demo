@@ -64,8 +64,7 @@ await server.register(FastifyVite, {
 // Session configuration
 const sessionSecret = process.env.SECRET_KEY || crypto.randomBytes(32).toString('hex');
 
-await server.register(fastifyCookie);
-await server.register(fastifySession, {
+const sessionConfig = {
   secret: sessionSecret,
   cookie: {
     secure: process.env.NODE_ENV === "production",
@@ -75,9 +74,14 @@ await server.register(fastifySession, {
     domain: process.env.APP_DOMAIN || 'localhost',
     path: '/',
   },
-  saveUninitialized: true,
-  cookieName: 'sessionId',
-});
+  saveUninitialized: false,  // Changed from true
+  rolling: true,            // Keep the session alive
+  resave: false,           // Don't save unmodified sessions
+  cookieName: 'sessionId'
+};
+
+await server.register(fastifyCookie);
+await server.register(fastifySession, sessionConfig);
 
 // Register multipart for file uploads
 await server.register(fastifyMultipart, {

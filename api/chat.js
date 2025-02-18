@@ -1,5 +1,5 @@
 import { createChatCompletion } from '../utils/openai.js';
-import { ChatManager } from './healthAssistantMachine.js';
+import { getChatManager } from './healthAssistantMachine.js';
 
 export function registerChatRoutes(server) {
   server.post('/api/chat', async (request, reply) => {
@@ -50,6 +50,13 @@ async function makeOpenAIRequest({ client, messages, tools = null }) {
 export async function handler(request) {
   const { message } = request.body;
   const { session } = request;
+  const sessionId = session.sessionId;
+
+  request.log.info({
+    msg: 'Processing chat request',
+    sessionId,
+    message
+  });
 
   // Initialize chat history if it doesn't exist
   if (!session.chatHistory) {
@@ -64,8 +71,8 @@ export async function handler(request) {
   // Add user message to history
   session.chatHistory.push({ role: "user", content: message });
 
-  // Initialize chat manager with session context
-  const chatManager = new ChatManager(session.sessionId);
+  // Use singleton instance
+  const chatManager = getChatManager();
 
   request.log.debug({
     msg: 'Making chat completion request',

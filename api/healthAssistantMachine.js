@@ -39,10 +39,17 @@ export const STEPS = {
   USER_CONFIRM_RECOMMENDATION: 6
 };
 
+// Add singleton instance
+let chatManagerInstance = null;
+
 export class ChatManager {
   constructor() {
+    if (chatManagerInstance) {
+      return chatManagerInstance;
+    }
     this.sessions = new Map();
     this.MAX_FOLLOW_UP_QUESTIONS = 2;
+    chatManagerInstance = this;
   }
 
   initSession(sessionId) {
@@ -141,3 +148,11 @@ export class ChatManager {
     }
   }
 }
+
+// Export singleton instance
+export const getChatManager = () => {
+  if (!chatManagerInstance) {
+    new ChatManager();
+  }
+  return chatManagerInstance;
+};
