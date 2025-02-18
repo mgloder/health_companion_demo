@@ -22,16 +22,18 @@ export function registerChatRoutes(server) {
   });
 }
 
-async function makeOpenAIRequest(messages, client) {
+async function makeOpenAIRequest({ client, messages, tools = null }) {
   const maxRetries = 3;
   let lastError = null;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
       const response = await client({
-        messages: messages,
+        messages,
         model: "gpt-4o-mini",
-        temperature: 0.7
+        temperature: 0.7,
+        tools,
+        tool_choice: tools ? "auto" : null
       });
       return response;
     } catch (error) {
@@ -43,39 +45,6 @@ async function makeOpenAIRequest(messages, client) {
   }
   
   throw new Error(`Failed to get OpenAI response after ${maxRetries} attempts: ${lastError.message}`);
-}
-
-async function handleToolCall(toolCall, chatManager, client) {
-  const { function: { name, arguments: args }, id: toolCallId } = toolCall;
-  let response;
-
-  switch (name) {
-    case 'collect_user_symptoms':
-      chatManager.getSymptoms().push(JSON.parse(args));
-      chatManager.session.symptoms = chatManager.getSymptoms();
-      chatManager.session.askedQuestions = chatManager.getAskedQuestions() + 1;
-
-      if (chatManager.session.askedQuestions < MAX_FOLLOW_UP_QUESTIONS) {
-        chatManager.addToolChatMessage(toolCallId, `请根据用户的输入信息，提问更具提的问题`);
-      } else {
-        chatManager.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
-        chatManager.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(chatManager.getSymptoms())} 以列表的方式列出可能的疾病`);
-      }
-      break;
-
-    case 'user_confirm_diagnosis':
-      chatManager.session.currentStep = STEPS.CONFIRMED_WITH_USER;
-      chatManager.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(chatManager.getSymptoms())} 推荐挂号的科室`);
-      break;
-
-    case 'user_reject_diagnosis':
-      chatManager.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(chatManager.getSymptoms())} 以列表的方式列出可能的疾病 返回的信息要求严格避免使用 Markdown、LaTeX 或其他富文本语法，所有换行请使用 HTML 的 <br> 标签`);
-      break;
-  }
-
-  response = await makeOpenAIRequest(chatManager.getChatHistory(), client);
-  chatManager.addChatMessage(response.choices[0].message);
-  return response.choices[0].message.content;
 }
 
 export async function handler(request) {
@@ -96,23 +65,23 @@ export async function handler(request) {
   session.chatHistory.push({ role: "user", content: message });
 
   // Initialize chat manager with session context
-  const chatManager = new ChatManager({ session });
+  const chatManager = new ChatManager(session.sessionId);
 
   request.log.debug({
     msg: 'Making chat completion request',
     messageCount: session.chatHistory.length,
-    currentStep: chatManager.getCurrentStep(),
-    symptoms: chatManager.getSymptoms(),
-    askedQuestions: chatManager.getAskedQuestions()
+    currentState: chatManager.getState(session.sessionId),
+    followUpCount: chatManager.getFollowUpCount(session.sessionId)
   });
 
   // Get completion from OpenAI with tools
   let response;
   try {
-    response = await makeOpenAIRequest(
-      chatManager.getChatHistory(), 
-      createChatCompletion
-    );
+    response = await makeOpenAIRequest({
+      client: createChatCompletion,
+      messages: session.chatHistory,
+      tools: chatManager.getTools(session.sessionId)
+    });
   } catch (error) {
     request.log.error("Error calling OpenAI:", {
       error: error.message,
@@ -123,27 +92,55 @@ export async function handler(request) {
     throw error;
   }
 
-  let type = "text";
-  let data = null;
-  let toolMessage = "";
-
+  let finalResponse = null
+  let finalResponseType = null;
+  let finalData = null;
+  
   // Handle tool calls if present
   if (response?.choices[0].message.tool_calls) {
     const toolCalls = response.choices[0].message.tool_calls;
     for (const toolCall of toolCalls) {
-      toolMessage = await handleToolCall(toolCall, chatManager, createChatCompletion);
+      const [toolsResponse, responseType, data] = await handleToolCall(toolCall, chatManager, createChatCompletion);
+      chatManager.update_state_with_tool_call(session.sessionId, toolCall);
+      finalResponse = toolsResponse;
+      finalResponseType = responseType;
+      finalData = data;
     }
-  } else {
-    // If no tool calls, add assistant's response to history
-    session.chatHistory.push(response.choices[0].message);
+  } else{
+    finalResponse = response.choices[0].message.content;
+    finalResponseType = "text";
+    finalData = null;
   }
 
   // Use tool message if available, otherwise use assistant's message
-  const chatMessage = response?.choices[0].message.content || toolMessage || "";
 
   return {
-    type,
-    message: chatMessage,
-    data
+    finalResponseType,
+    message: finalResponse,
+    finalData,
+    currentState: chatManager.getState(session.sessionId)
   };
+}
+
+async function handleToolCall(toolCall, chatManager, createChatCompletion) {
+  const { name, arguments: args } = toolCall.function;
+
+  if (name === 'collect_user_symptoms') {
+    // Parse the symptoms from the tool call
+    const parsedArgs = JSON.parse(args);
+    
+    // Get a response from OpenAI about the symptoms
+    const response = await createChatCompletion({
+      messages: [{
+        role: "system",
+        content: `根据用户的症状去询问更细节的症状，主要的症状：${parsedArgs.symptoms}, 其他信息: ${parsedArgs.others || 'None'}`
+      }],
+      temperature: 0.7
+    });
+
+    return [response.choices[0].message.content, "text", null];
+  }
+
+  // Default return for other tool calls
+  return ["", "text", null];
 }

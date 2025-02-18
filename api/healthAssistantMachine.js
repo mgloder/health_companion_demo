@@ -1,6 +1,3 @@
-
-const MAX_FOLLOW_UP_QUESTIONS = 3;
-
 const COLLECT_USER_SYMPTOMS = {
   type: "function",
   function: {
@@ -35,49 +32,112 @@ const USER_REJECT_DIAGNOSIS = {
 
 export const STEPS = {
   COLLECT_INFO: 1,
-  GENERATE_POSSIBLE_DISEASES: 2,
-  CONFIRMED_WITH_USER: 3,
+  CONFIRM_WITH_USER: 2,
+  GENERATE_INSURANCE_COVERAGE: 3,
+  DOCUMENT_Q_AND_A: 4,
+  DOCTOR_RECOMMENDATION: 5,
+  USER_CONFIRM_RECOMMENDATION: 6
 };
 
-
 export class ChatManager {
-  constructor({ session }) {
-    this.session = session;
+  constructor() {
+    this.sessions = new Map();
+    this.MAX_FOLLOW_UP_QUESTIONS = 2;
   }
 
-  getChatHistory() {
-    return this.session.chatHistory;
+  initSession(sessionId) {
+    if (!this.sessions.has(sessionId)) {
+      this.sessions.set(sessionId, {
+        currentState: STEPS.COLLECT_INFO,
+        followUpCount: 0
+      });
+    }
   }
 
-  getSymptoms() {
-    return this.session.symptoms || [];
+  update_state(sessionId, action) {
+    this.initSession(sessionId);
+    const session = this.sessions.get(sessionId);
+
+    // Special case for COLLECT_INFO
+    if (session.currentState === STEPS.COLLECT_INFO) {
+      if (session.followUpCount >= this.MAX_FOLLOW_UP_QUESTIONS) {
+        session.currentState = STEPS.CONFIRM_WITH_USER;
+      }
+      return session.currentState;
+    }
+
+    // Special case for CONFIRM_WITH_USER
+    if (session.currentState === STEPS.CONFIRM_WITH_USER) {
+      if (action === 'BACK') {
+        session.currentState = STEPS.COLLECT_INFO;
+        session.followUpCount = 0;  // Reset count when returning to COLLECT_INFO
+      }
+      return session.currentState;
+    }
+
+    // For all other states
+    if (action === 'NEXT' && session.currentState < STEPS.USER_CONFIRM_RECOMMENDATION) {
+      session.currentState += 1;
+    } 
+
+    return session.currentState;
   }
 
-  getAskedQuestions() {
-    return this.session.askedQuestions || 0;
+  incrementFollowUpCount(sessionId) {
+    this.initSession(sessionId);
+    const session = this.sessions.get(sessionId);
+    session.followUpCount += 1;
   }
 
-  getCurrentStep() {
-    return this.session.currentStep;
+  resetFollowUpCount(sessionId) {
+    this.initSession(sessionId);
+    const session = this.sessions.get(sessionId);
+    session.followUpCount = 0;
   }
 
-  addToolChatMessage(toolCallId, content) {
-    this.session.chatHistory.push({
-      role: "assistant",
-      content: null,
-      tool_calls: [{
-        id: toolCallId,
-        type: "function",
-        function: { name: "collect_info", arguments: JSON.stringify({ message: content }) }
-      }]
-    });
+  getState(sessionId) {
+    this.initSession(sessionId);
+    return this.sessions.get(sessionId).currentState;
   }
 
-  addChatMessage(message) {
-    this.session.chatHistory.push(message);
+  getFollowUpCount(sessionId) {
+    this.initSession(sessionId);
+    return this.sessions.get(sessionId).followUpCount;
   }
 
-  getTools() {
-    // Return your tools configuration
+  getCurrentStep(sessionId) {
+    this.initSession(sessionId);
+    return this.sessions.get(sessionId).currentState;
+  }
+
+  getTools(sessionId) {
+    if (this.getCurrentStep(sessionId) === STEPS.COLLECT_INFO) {
+      return [COLLECT_USER_SYMPTOMS];
+    } else if (this.getCurrentStep(sessionId) === STEPS.CONFIRM_WITH_USER) {
+      return [USER_CONFIRM_DIAGNOSIS, USER_REJECT_DIAGNOSIS];
+    } else {
+      return [];
+    }
+  }
+
+  update_state_with_tool_call(sessionId, toolCall) {
+    const { name } = toolCall.function;
+
+    switch (name) {
+      case 'collect_user_symptoms':
+        console.log(sessionId, this.getFollowUpCount(sessionId));
+        this.incrementFollowUpCount(sessionId);
+        this.update_state(sessionId, 'NEXT');
+        break;
+        
+      case 'user_confirm_diagnosis':
+        this.update_state(sessionId, 'NEXT');
+        break;
+        
+      case 'user_reject_diagnosis':
+        this.resetFollowUpCount(sessionId);
+        this.update_state(sessionId, 'BACK');
+        break;
+    }
   }
 }
