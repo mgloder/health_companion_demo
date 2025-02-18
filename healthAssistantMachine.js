@@ -79,7 +79,7 @@ export class ChatManager {
   }
 
   async handleRejectDiagnosis(toolCallId, args) {
-    this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病`);
+    this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病 返回的信息要求严格避免使用 Markdown、LaTeX 或其他富文本语法，所有换行请使用 HTML 的 <br> 标签`);
 
     console.log(this.getChatHistory());
     const response = await this.openai.chat.completions.create({

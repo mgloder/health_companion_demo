@@ -1,9 +1,11 @@
+import os from'os';
 import Fastify from "fastify";
 import FastifyVite from "@fastify/vite";
 import fastifyEnv from "@fastify/env";
 import FastifyStatic from "@fastify/static";
 import fastifySession from "@fastify/session";
 import fastifyCookie from "@fastify/cookie";
+import fastifyMultipart from "@fastify/multipart";
 import path from "path";
 import { fileURLToPath } from "url";
 import { Agent, ProxyAgent } from "undici";
@@ -14,10 +16,10 @@ import { handler as summaryCheckinHandler } from "./summary-checkin.js";
 import { handler as chatHandler } from "./chat.js";
 import crypto from "crypto";
 import { pipeline } from 'stream/promises';
-import { createWriteStream } from 'fs';
+import { createWriteStream, createReadStream, readFileSync, unlink } from 'fs';
 import { mkdir } from 'fs/promises';
 import busboy from 'busboy';
-import OpenAI from 'openai';
+import OpenAI, { toFile } from 'openai';
 import { readFile } from 'fs/promises';
 
 // Configure logger
@@ -124,14 +126,14 @@ const openai = new OpenAI({
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const response = await fetch(url, { 
-        ...options, 
+      const response = await fetch(url, {
+        ...options,
         dispatcher,
-        signal: controller.signal 
+        signal: controller.signal
       });
-      
+
       clearTimeout(timeoutId);
-      
+
       if (!response.ok) {
         logger.error({
           msg: 'OpenAI API error response',
@@ -142,12 +144,12 @@ const openai = new OpenAI({
         });
         throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
       }
-      
+
       logger.debug({
         msg: 'OpenAI API request successful',
         status: response.status
       });
-      
+
       return response;
     } catch (error) {
       logger.error({
@@ -160,7 +162,7 @@ const openai = new OpenAI({
 
       // Add delay between retries
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       throw error;
     }
   }
@@ -266,18 +268,13 @@ server.post('/api/chat', async (request, reply) => {
   if (!request.session.id) {
     request.session.set('initialized', true);
   }
-  
+
   const { aiMessage, type, data } = await chatHandler(request, dispatcher);
-  
+
   // Ensure session is saved
   await request.session.save();
-  
-  return { message: aiMessage, type, data };
-});
 
-// Add this before the upload route
-server.addContentTypeParser('multipart/form-data', (request, payload, done) => {
-  done(null);
+  return { message: aiMessage, type, data };
 });
 
 // In-memory storage for embeddings
@@ -286,13 +283,13 @@ const embeddingsStore = new Map();
 // Add these helper functions at the top
 function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
   const chunks = [];
-  
+
   // Approximate page size (2000 chars)
   const pageSize = maxTokens * 1.8;  // tokens * buffer
-  
+
   // Split text into paragraphs
   const paragraphs = text.split(/\n\s*\n/);
-  
+
   for (const paragraph of paragraphs) {
     // If paragraph is smaller than page size, treat normally
     if (paragraph.length <= pageSize) {
@@ -304,7 +301,7 @@ function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
     } else {
       // For large paragraphs, split into sentences
       const sentences = paragraph.match(/[^.!?]+[.!?]+/g) || [paragraph];
-      
+
       for (const sentence of sentences) {
         // If sentence is smaller than page size, treat normally
         if (sentence.length <= pageSize) {
@@ -317,7 +314,7 @@ function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
           // For large sentences, split into words
           const words = sentence.split(/\s+/);
           let currentChunk = '';
-          
+
           for (const word of words) {
             if (currentChunk.length + word.length + 1 > pageSize) {
               if (currentChunk) {
@@ -328,7 +325,7 @@ function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
               currentChunk += (currentChunk ? ' ' : '') + word;
             }
           }
-          
+
           if (currentChunk) {
             if (chunks.length === 0 || (chunks[chunks.length - 1].length + currentChunk.length > pageSize)) {
               chunks.push(currentChunk.trim());
@@ -358,9 +355,9 @@ server.post('/api/upload', async (request, reply) => {
     const bb = busboy({ headers: request.headers });
     const uploadDir = path.join(__dirname, 'uploads');
     const uploadedFiles = [];
-    const processingPromises = []; 
+    const processingPromises = [];
     const HARDCODED_KEY = 1;  // Hardcoded key for embeddings store
-    
+
     logger.info({
       msg: 'Starting file upload process',
       uploadDir,
@@ -375,7 +372,7 @@ server.post('/api/upload', async (request, reply) => {
     bb.on('file', async (name, file, info) => {
       const filename = info.filename;
       const filepath = path.join(uploadDir, filename);
-      
+
       const processPromise = (async () => {
         try {
           logger.debug(`Saving file to disk: ${filepath}`);
@@ -383,10 +380,10 @@ server.post('/api/upload', async (request, reply) => {
             file,
             createWriteStream(filepath)
           );
-          
+
           const fileContent = await readFile(filepath, 'utf-8');
           const chunks = chunkText(fileContent);
-          
+
           // Get embeddings for each chunk
           const embeddings = [];
           for (let i = 0; i < chunks.length; i++) {
@@ -447,7 +444,7 @@ server.post('/api/upload', async (request, reply) => {
             storeKey: HARDCODED_KEY,
             numberOfChunks: chunks.length
           });
-          
+
         } catch (err) {
           logger.error({
             msg: 'Error processing file',
@@ -470,13 +467,13 @@ server.post('/api/upload', async (request, reply) => {
 
     // Pipe request to busboy
     request.raw.pipe(bb);
-    
+
     // Wait for upload to complete
     await uploadPromise;
-    
+
     // Wait for all file processing to complete
     await Promise.all(processingPromises);
-    
+
     // Save session after all processing is complete
     await request.session.save();
 
@@ -502,10 +499,10 @@ server.post('/api/upload', async (request, reply) => {
       error: error.message,
       stack: error.stack
     });
-    reply.code(500).send({ 
+    reply.code(500).send({
       success: false,
       error: "Failed to upload files",
-      details: error.message 
+      details: error.message
     });
   }
 });
@@ -514,7 +511,7 @@ server.post('/api/upload', async (request, reply) => {
 server.get('/api/embeddings', async (request, reply) => {
   const HARDCODED_KEY = 1;
   const embeddings = embeddingsStore.get(HARDCODED_KEY);
-  
+
   if (!embeddings) {
     reply.code(404).send({
       success: false,
@@ -527,6 +524,87 @@ server.get('/api/embeddings', async (request, reply) => {
     success: true,
     embeddings: embeddings
   };
+});
+
+server.post('/api/transcribe', async (request, reply) => {
+  try {
+    const parts = request.files();
+    let audioFile;
+    for await (const part of parts) {
+      if (part.fieldname === 'audio') {
+        audioFile = part;
+        break;
+      }
+    }
+    if (!audioFile) {
+      logger.error("No audio file in request");
+      return reply.status(400).send({ error: 'No audio file provided' });
+    }
+
+    logger.info(`Received audio file: ${audioFile.filename}`);
+
+    // 将上传的文件保存到临时目录（文件名带上时间戳以避免冲突）
+    const tempFilePath = path.join(os.tmpdir(), `${Date.now()}-${audioFile.filename}`);
+    const writeStream = createWriteStream(tempFilePath);
+
+    await new Promise((resolve, reject) => {
+      audioFile.file.pipe(writeStream);
+      audioFile.file.on('end', resolve);
+      audioFile.file.on('error', reject);
+    });
+    logger.info(`Saved temporary file: ${tempFilePath}`);
+
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+      fetch: async (url, options) => {
+        try {
+          const response = await fetch(url, { ...options, dispatcher });
+          if (!response.ok) {
+            throw new Error(`OpenAI API error: ${response.status} ${response.statusText}`);
+          }
+          return response;
+        } catch (error) {
+          console.error("OpenAI API fetch error:", {
+            url,
+            error: error.message,
+            stack: error.stack,
+          });
+          throw new Error(`Failed to connect to OpenAI API: ${error.message}`);
+        }
+      },
+    });
+
+    // 使用 Whisper API 进行转录
+    let transcript;
+    try {
+      const audioBuffer = readFileSync(tempFilePath);
+      logger.info("Sending to Whisper API...");
+      const response = await openai.audio.transcriptions.create({
+        file: toFile(audioBuffer),
+        model: "whisper-1",
+        response_format: "text"
+      });
+      transcript = response.data;
+      logger.info(`Received transcript: ${transcript}`);
+    } catch (whisperError) {
+      logger.error(`Whisper API error: ${whisperError.message}`);
+      throw whisperError;
+    }
+
+    // 清理临时文件（异步删除，不阻塞响应）
+    unlink(tempFilePath, (err) => {
+      if (err) {
+        logger.error(`Error cleaning up temporary file: ${err.message}`);
+      } else {
+        logger.info("Temporary file cleaned up");
+      }
+    });
+
+    return reply.status(200).send({ text: transcript });
+  } catch (error) {
+    logger.error("Error in /api/transcribe:", error);
+    return reply.status(500).send({ error: error.message });
+  }
 });
 
 // Add this proxy configuration before any routes
@@ -551,7 +629,7 @@ server.post('/api/search', async (request, reply) => {
   try {
     const { query } = request.body;
     const HARDCODED_KEY = 1;
-    
+
     logger.info({
       msg: 'Processing search request',
       query,
@@ -571,7 +649,7 @@ server.post('/api/search', async (request, reply) => {
 
 
     const fileList = storedEmbeddings.map(file => file.filename).join('\n');
-    
+
     const fileSelectionResponse = await openai.chat.completions.create({
       model: "gpt-4o-mini",
       messages: [
@@ -606,7 +684,7 @@ server.post('/api/search', async (request, reply) => {
 
     // Step 3: Find the most relevant chunks from selected files
     const relevantChunks = [];
-    
+
     for (const filename of relevantFiles) {
       const file = storedEmbeddings.find(f => f.filename === filename);
       if (!file) continue;

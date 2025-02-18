@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import FooterInput from "../components/FooterInput.jsx";
 import ChevronLeftIcon from "../components/ChevronLeftIcon.jsx";
 import marryProfile from "../assets/marry-profile.svg";
 import ChatMessage from "../components/ChatMessage.jsx";
+import ChatFooterInput from "../components/ChatFooterInput.jsx";
 
 function Header({ onProfileClick }) {
   return (
@@ -111,7 +111,7 @@ export default function InsuranceChat() {
         ))}
       </div>
 
-      <FooterInput onSendMessage={handleSendMessage} />
+      <ChatFooterInput onSendMessage={handleSendMessage} />
     </div>
   );
 }
