@@ -21,6 +21,8 @@ import { mkdir } from 'fs/promises';
 import busboy from 'busboy';
 import OpenAI, { toFile } from 'openai';
 import { readFile } from 'fs/promises';
+import OpenAI from 'openai';
+import { readFile, writeFile } from 'fs/promises';
 
 // Configure logger
 const logger = pino({
@@ -350,6 +352,112 @@ function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
   return chunks;
 }
 
+// Add these helper functions at the top
+async function saveDataToFiles(data) {
+  try {
+    // Create directories if they don't exist
+    const dataDir = path.join(__dirname, 'data');
+    await mkdir(dataDir, { recursive: true });
+
+    // Save embeddings and content separately
+    const embeddingsPath = path.join(dataDir, 'embeddings.json');
+    const contentPath = path.join(dataDir, 'content.json');
+
+    // Separate embeddings and content
+    const embeddingsData = data.map(file => ({
+      filename: file.filename,
+      chunks: file.chunks.map(chunk => ({
+        chunkIndex: chunk.chunkIndex,
+        embedding: chunk.embedding
+      }))
+    }));
+
+    const contentData = data.map(file => ({
+      filename: file.filename,
+      chunks: file.chunks.map(chunk => ({
+        chunkIndex: chunk.chunkIndex,
+        content: chunk.chunk
+      }))
+    }));
+
+    // Save both files
+    await writeFile(embeddingsPath, JSON.stringify(embeddingsData, null, 2));
+    await writeFile(contentPath, JSON.stringify(contentData, null, 2));
+
+    logger.info({
+      msg: 'Data saved to files',
+      embeddingsPath,
+      contentPath,
+      fileCount: data.length,
+      totalChunks: data.reduce((sum, file) => sum + file.chunks.length, 0)
+    });
+  } catch (error) {
+    logger.error({
+      msg: 'Failed to save data',
+      error: error.message,
+      stack: error.stack
+    });
+    throw error;
+  }
+}
+
+async function loadDataFromFiles() {
+  try {
+    const embeddingsPath = path.join(__dirname, 'data', 'embeddings.json');
+    const contentPath = path.join(__dirname, 'data', 'content.json');
+
+    // Load both files
+    const embeddingsData = JSON.parse(await readFile(embeddingsPath, 'utf-8'));
+    const contentData = JSON.parse(await readFile(contentPath, 'utf-8'));
+
+    // Merge the data back together
+    const mergedData = embeddingsData.map(embeddingFile => {
+      const contentFile = contentData.find(c => c.filename === embeddingFile.filename);
+      return {
+        filename: embeddingFile.filename,
+        chunks: embeddingFile.chunks.map(embeddingChunk => {
+          const contentChunk = contentFile.chunks.find(c => c.chunkIndex === embeddingChunk.chunkIndex);
+          return {
+            chunkIndex: embeddingChunk.chunkIndex,
+            chunk: contentChunk.content,
+            embedding: embeddingChunk.embedding
+          };
+        })
+      };
+    });
+
+    logger.info({
+      msg: 'Data loaded from files',
+      fileCount: mergedData.length,
+      totalChunks: mergedData.reduce((sum, file) => sum + file.chunks.length, 0)
+    });
+
+    return mergedData;
+  } catch (error) {
+    logger.info('No existing data files found');
+    return [];
+  }
+}
+
+// Initialize data store from files
+const embeddingsStore = new Map();
+const HARDCODED_KEY = 1;
+
+// Load existing data when server starts
+try {
+  const savedData = await loadDataFromFiles();
+  embeddingsStore.set(HARDCODED_KEY, savedData);
+  logger.info({
+    msg: 'Initialized data store from files',
+    fileCount: savedData.length,
+    totalChunks: savedData.reduce((sum, file) => sum + file.chunks.length, 0)
+  });
+} catch (error) {
+  logger.warn('Failed to load data from files, starting with empty store');
+  embeddingsStore.set(HARDCODED_KEY, []);
+}
+
+// Update the upload endpoint to save both embeddings and content
 server.post('/api/upload', async (request, reply) => {
   try {
     const bb = busboy({ headers: request.headers });
@@ -474,14 +582,18 @@ server.post('/api/upload', async (request, reply) => {
     // Wait for all file processing to complete
     await Promise.all(processingPromises);
 
+
+    // Save all data to files
+    await saveDataToFiles(embeddingsStore.get(HARDCODED_KEY));
+
     // Save session after all processing is complete
     await request.session.save();
 
     logger.info({
-      msg: 'All files processed successfully',
+      msg: 'All files processed and data saved',
       storeKey: HARDCODED_KEY,
       totalFiles: uploadedFiles.length,
-      embeddingsStored: embeddingsStore.get(HARDCODED_KEY)?.length || 0
+      totalChunks: embeddingsStore.get(HARDCODED_KEY)?.reduce((sum, file) => sum + file.chunks.length, 0) || 0
     });
 
     return {
@@ -741,6 +853,32 @@ server.post('/api/search', async (request, reply) => {
       details: error.message
     });
   }
+});
+
+// Add a helper endpoint to get original content
+server.get('/api/content/:filename/:chunkIndex', async (request, reply) => {
+  const { filename, chunkIndex } = request.params;
+  const data = embeddingsStore.get(HARDCODED_KEY);
+
+  const file = data?.find(f => f.filename === filename);
+  const chunk = file?.chunks.find(c => c.chunkIndex === parseInt(chunkIndex));
+
+  if (!chunk) {
+    reply.code(404).send({
+      success: false,
+      error: 'Content not found'
+    });
+    return;
+  }
+
+  return {
+    success: true,
+    content: chunk.chunk,
+    metadata: {
+      filename,
+      chunkIndex: chunk.chunkIndex
+    }
+  };
 });
 
 // Server startup with logging
