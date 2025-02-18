@@ -140,12 +140,16 @@ async function handleToolCall(toolCall, chatManager, createChatCompletion) {
     const response = await createChatCompletion({
       messages: [{
         role: "system",
-        content: `根据用户的症状去询问更细节的症状，主要的症状：${parsedArgs.symptoms}, 其他信息: ${parsedArgs.others || 'None'}`
+        content: `根据用户的症状去询问更细节的症状, 问题应该简洁，主要的症状：${parsedArgs.symptoms}, 其他信息: ${parsedArgs.others || 'None'}`
       }],
       temperature: 0.7
     });
 
     return [response.choices[0].message.content, "text", null];
+  } else if (name === 'user_confirm_diagnosis') {
+    return ["好的了解！现在我会根据这个症状去查询一下我们的医疗保险有没有覆盖到相关的疾病，请稍等。", "text", null];
+  } else if (name === 'user_reject_diagnosis') {
+    return ["好的，我明白了。那我们将会重新开始收集不舒服的症状，请您重新描述一下关键的症状", "text", null];
   }
 
   // Default return for other tool calls

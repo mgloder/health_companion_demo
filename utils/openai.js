@@ -16,7 +16,7 @@ logger.info({
 
 export async function createChatCompletion({ 
   messages, 
-  model = "gpt-4o", 
+  model = "gpt-4o-mini", 
   temperature = 0.7,
   tools = null,
   tool_choice = null 
@@ -31,7 +31,7 @@ export async function createChatCompletion({
 
   // Only use proxy agent in development environment
   if (process.env.NODE_ENV === 'development') {
-    const proxyUrl = 'http://127.0.0.1:1087';
+    const proxyUrl = process.env.ALL_PROXY;
     const proxyAgent = new HttpsProxyAgent(proxyUrl);
     openaiConfig.httpAgent = proxyAgent;
     openaiConfig.httpsAgent = proxyAgent;
