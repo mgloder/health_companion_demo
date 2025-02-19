@@ -74,9 +74,7 @@ const sessionConfig = {
     domain: process.env.APP_DOMAIN || 'localhost',
     path: '/',
   },
-  saveUninitialized: false,  // Changed from true
-  rolling: true,            // Keep the session alive
-  resave: false,           // Don't save unmodified sessions
+  saveUninitialized: true,
   cookieName: 'sessionId'
 };
 
