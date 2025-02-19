@@ -69,13 +69,7 @@ const sessionConfig = {
   cookie: {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
-    maxAge: 86400,
-    sameSite: 'none',
-    path: '/',
-    domain: 'ai-health-companion.azurewebsites.net',
   },
-  saveUninitialized: false,
-  rolling: true,
   cookieName: 'sessionId'
 };
 
