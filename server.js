@@ -16,9 +16,16 @@ import { initializeOpenAI } from './utils/openai.js';
 
 // Initialize logger
 const logger = pino({
-  level: process.env.LOG_LEVEL || 'info'
+  transport: {
+    target: "pino-pretty",
+    options: {
+      colorize: true,
+      translateTime: "HH:MM:ss Z",
+      ignore: "pid,hostname",
+    },
+  },
+  level: process.env.NODE_ENV === "development" ? "debug" : "info",
 });
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -67,12 +74,12 @@ const sessionSecret = process.env.SECRET_KEY || crypto.randomBytes(32).toString(
 const sessionConfig = {
   secret: sessionSecret,
   cookie: {
-    secure: true,  // Since we're using HTTPS on Azure
+    secure: false,  // Since we're using HTTPS on Azure
     httpOnly: true,
-    maxAge: 86400000,  // 24 hours in milliseconds
+    maxAge: 8640000,  // 24 hours in milliseconds
     sameSite: 'strict',  // Changed to strict since it's same-origin
     path: '/',
-    domain: undefined,  // Let the browser set the domain automatically
+    domain: process.env.APP_DOMAIN || 'localhost',  // Let the browser set the domain automatically
   },
   saveUninitialized: false,
   rolling: true,
@@ -164,6 +171,14 @@ server.get("/token", async (request, reply) => {
     logger.error({ err: error }, "Error in token endpoint");
     throw error;
   }
+});
+
+server.get("/api-env", async (request, reply) => {
+  return {
+    NODE_ENV: process.env.NODE_ENV,
+    PORT: process.env.PORT,
+    APP_DOMAIN: process.env.APP_DOMAIN,
+  };
 });
 
 // Wait for Vite to be ready
