@@ -1,3 +1,7 @@
+import { createChatCompletion } from "../utils/openai.js";
+
+const MAX_FOLLOW_UP_QUESTIONS = 3;
+
 const COLLECT_USER_SYMPTOMS = {
   type: "function",
   function: {
@@ -5,12 +9,12 @@ const COLLECT_USER_SYMPTOMS = {
     parameters: {
       type: "object",
       properties: {
-        symptoms: { type: "string", description: "主要病症" },
-        others: { type: "string", description: "关于症状的其他信息" },
+        symptoms: { type: "string", description: "用户描述的具体生理症状" },
+        others: { type: "string", description: "用户提供的其他相关信息" },
       },
       required: ["primary_symptoms"],
     },
-    description: "收集用户提供的症状相关信息",
+    description: "收集用户提供的症状及相关信息",
   },
 };
 
@@ -32,127 +36,105 @@ const USER_REJECT_DIAGNOSIS = {
 
 export const STEPS = {
   COLLECT_INFO: 1,
-  CONFIRM_WITH_USER: 2,
-  GENERATE_INSURANCE_COVERAGE: 3,
-  DOCUMENT_Q_AND_A: 4,
-  DOCTOR_RECOMMENDATION: 5,
-  USER_CONFIRM_RECOMMENDATION: 6
+  GENERATE_POSSIBLE_DISEASES: 2,
+  CONFIRMED_WITH_USER: 3,
+  GENERATE_INSURANCE_COVERAGE: 4,
+  DOCUMENT_Q_AND_A: 5,
+  DOCTOR_RECOMMENDATION: 6,
+  USER_CONFIRM_RECOMMENDATION: 7
 };
 
-// Add singleton instance
-let chatManagerInstance = null;
 
 export class ChatManager {
-  constructor() {
-    if (chatManagerInstance) {
-      return chatManagerInstance;
-    }
-    this.sessions = new Map();
-    this.MAX_FOLLOW_UP_QUESTIONS = 2;
-    chatManagerInstance = this;
+  constructor(context) {
+    this.session = context.session;
   }
 
-  initSession(sessionId) {
-    if (!this.sessions.has(sessionId)) {
-      this.sessions.set(sessionId, {
-        currentState: STEPS.COLLECT_INFO,
-        followUpCount: 0
-      });
-    }
-  }
+  async handleCollectInfo(toolCallId, args) {
+    this.getSymptoms().push(args);
+    this.session.symptoms = this.getSymptoms();
+    this.session.askedQuestions = this.getAskedQuestions() + 1;
 
-  update_state(sessionId, action) {
-    this.initSession(sessionId);
-    const session = this.sessions.get(sessionId);
-
-    // Special case for COLLECT_INFO
-    if (session.currentState === STEPS.COLLECT_INFO) {
-      if (session.followUpCount >= this.MAX_FOLLOW_UP_QUESTIONS) {
-        session.currentState = STEPS.CONFIRM_WITH_USER;
-      }
-      return session.currentState;
-    }
-
-    // Special case for CONFIRM_WITH_USER
-    if (session.currentState === STEPS.CONFIRM_WITH_USER) {
-      if (action === 'BACK') {
-        session.currentState = STEPS.COLLECT_INFO;
-        session.followUpCount = 0;  // Reset count when returning to COLLECT_INFO
-      }
-      return session.currentState;
-    }
-
-    // For all other states
-    if (action === 'NEXT' && session.currentState < STEPS.USER_CONFIRM_RECOMMENDATION) {
-      session.currentState += 1;
-    } 
-
-    return session.currentState;
-  }
-
-  incrementFollowUpCount(sessionId) {
-    this.initSession(sessionId);
-    const session = this.sessions.get(sessionId);
-    session.followUpCount += 1;
-  }
-
-  resetFollowUpCount(sessionId) {
-    this.initSession(sessionId);
-    const session = this.sessions.get(sessionId);
-    session.followUpCount = 0;
-  }
-
-  getState(sessionId) {
-    this.initSession(sessionId);
-    return this.sessions.get(sessionId).currentState;
-  }
-
-  getFollowUpCount(sessionId) {
-    this.initSession(sessionId);
-    return this.sessions.get(sessionId).followUpCount;
-  }
-
-  getCurrentStep(sessionId) {
-    this.initSession(sessionId);
-    return this.sessions.get(sessionId).currentState;
-  }
-
-  getTools(sessionId) {
-    if (this.getCurrentStep(sessionId) === STEPS.COLLECT_INFO) {
-      return [COLLECT_USER_SYMPTOMS];
-    } else if (this.getCurrentStep(sessionId) === STEPS.CONFIRM_WITH_USER) {
-      return [USER_CONFIRM_DIAGNOSIS, USER_REJECT_DIAGNOSIS];
+    if (this.session.askedQuestions < MAX_FOLLOW_UP_QUESTIONS) {
+      this.addToolChatMessage(toolCallId, `根据用户的症状去询问更细节的症状, 问题应该简洁`);
     } else {
-      return [];
+      this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
+      this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病 请以纯文本的方式回复`);
     }
+    const response = await createChatCompletion({
+      model: "gpt-4o-mini",
+      messages: this.getChatHistory(),
+    });
+    this.addChatMessage(response.choices[0].message);
+    return response.choices[0].message.content;
   }
 
-  update_state_with_tool_call(sessionId, toolCall) {
-    const { name } = toolCall.function;
+  async handleConfirmDiagnosis(toolCallId, args) {
+    this.session.currentStep = STEPS.CONFIRMED_WITH_USER;
 
-    switch (name) {
-      case 'collect_user_symptoms':
-        console.log(sessionId, this.getFollowUpCount(sessionId));
-        this.incrementFollowUpCount(sessionId);
-        this.update_state(sessionId, 'NEXT');
-        break;
-        
-      case 'user_confirm_diagnosis':
-        this.update_state(sessionId, 'NEXT');
-        break;
-        
-      case 'user_reject_diagnosis':
-        this.resetFollowUpCount(sessionId);
-        this.update_state(sessionId, 'BACK');
-        break;
+    this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 推荐挂号的科室`);
+    const response = await createChatCompletion({
+      model: "gpt-4o-mini",
+      messages: this.getChatHistory(),
+    });
+    console.log(this.getChatHistory());
+    this.addChatMessage(response.choices[0].message);
+    return response.choices[0].message.content;
+  }
+
+  async handleRejectDiagnosis(toolCallId, args) {
+    // return collect_info step
+    this.session.currentStep = STEPS.COLLECT_INFO;
+    this.session.askedQuestions = 0;
+
+    this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病 请以纯文本的方式回复`);
+
+    const response = await createChatCompletion({
+      model: "gpt-4o-mini",
+      messages: this.getChatHistory(),
+    });
+    console.log(this.getChatHistory());
+    this.addChatMessage(response.choices[0].message);
+    return response.choices[0].message.content;
+  }
+
+  addChatMessage(message) {
+    this.session.chatHistory.push(message);
+  }
+
+  addToolChatMessage(toolCallId, content) {
+    this.session.chatHistory.push({
+      role: "tool",
+      tool_call_id: toolCallId,
+      content,
+    });
+  }
+
+  getSymptoms() {
+    return this.session.symptoms || [];
+  }
+
+  getChatHistory() {
+    return this.session.chatHistory || [];
+  }
+
+  getAskedQuestions() {
+    return this.session.askedQuestions || 0;
+  }
+
+  getCurrentStep() {
+    return this.session.currentStep || STEPS.COLLECT_INFO;
+  }
+
+  getTools() {
+    let tools = [];
+    if (this.getCurrentStep() === STEPS.COLLECT_INFO) {
+      tools.push(COLLECT_USER_SYMPTOMS);
     }
+    if (this.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES) {
+      tools.push(USER_CONFIRM_DIAGNOSIS);
+      tools.push(USER_REJECT_DIAGNOSIS);
+    }
+    return tools;
   }
 }
-
-// Export singleton instance
-export const getChatManager = () => {
-  if (!chatManagerInstance) {
-    new ChatManager();
-  }
-  return chatManagerInstance;
-};
