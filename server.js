@@ -70,11 +70,12 @@ const sessionConfig = {
     secure: process.env.NODE_ENV === "production",
     httpOnly: true,
     maxAge: 86400,
-    sameSite: 'lax',
-    domain: process.env.APP_DOMAIN || 'localhost',
+    sameSite: 'none',
     path: '/',
+    domain: 'ai-health-companion.azurewebsites.net',
   },
-  saveUninitialized: true,
+  saveUninitialized: false,
+  rolling: true,
   cookieName: 'sessionId'
 };
 
