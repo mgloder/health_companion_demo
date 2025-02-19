@@ -34,6 +34,30 @@ const USER_REJECT_DIAGNOSIS = {
   },
 };
 
+const CONFIRM_RESPONSE_FORMAT =  {
+  "type": "json_schema",
+    "json_schema": {
+    "name": "health_assistant_response",
+      "strict": true,
+      "schema": {
+      "type": "object",
+        "properties": {
+        "diseases": {
+          "type": "array",
+            "items": {
+            "type": "string"
+          }
+        },
+        "recommendation": {
+          "type": "string"
+        }
+      },
+      "required": ["diseases", "recommendation"],
+        "additionalProperties": false
+    }
+  }
+}
+
 export const STEPS = {
   COLLECT_INFO: 1,
   GENERATE_POSSIBLE_DISEASES: 2,
@@ -54,16 +78,19 @@ export class ChatManager {
     this.getSymptoms().push(args);
     this.session.symptoms = this.getSymptoms();
     this.session.askedQuestions = this.getAskedQuestions() + 1;
+    let response_format;
 
     if (this.session.askedQuestions < MAX_FOLLOW_UP_QUESTIONS) {
       this.addToolChatMessage(toolCallId, `根据用户的症状去询问更细节的症状, 问题应该简洁`);
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
       this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病 请以纯文本的方式回复`);
+      response_format = CONFIRM_RESPONSE_FORMAT;
     }
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: this.getChatHistory(),
+      response_format
     });
     this.addChatMessage(response.choices[0].message);
     return response.choices[0].message.content;
@@ -87,13 +114,12 @@ export class ChatManager {
     this.session.currentStep = STEPS.COLLECT_INFO;
     this.session.askedQuestions = 0;
 
-    this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病 请以纯文本的方式回复`);
+    this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 重新收集症状的细节`);
 
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: this.getChatHistory(),
     });
-    console.log(this.getChatHistory());
     this.addChatMessage(response.choices[0].message);
     return response.choices[0].message.content;
   }

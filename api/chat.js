@@ -25,6 +25,7 @@ export function registerChatRoutes(server) {
 async function handleToolCalls(message, chatManager) {
   let toolMessage = '';
   let type = 'text';
+  let data = null;
   chatManager.addChatMessage(message);
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
@@ -33,7 +34,10 @@ async function handleToolCalls(message, chatManager) {
 
     if (name === "collect_user_symptoms") {
       toolMessage = await chatManager.handleCollectInfo(toolCallId, args);
-      type = chatManager.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES ? 'confirm' : 'text';
+      if (chatManager.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES) {
+        type = 'confirm'
+        data = JSON.parse(toolMessage);
+      }
     }
 
     if (name === "user_confirm_diagnosis") {
@@ -44,7 +48,7 @@ async function handleToolCalls(message, chatManager) {
       toolMessage = await chatManager.handleRejectDiagnosis(toolCallId, args);
     }
   }
-  return { type, toolMessage };
+  return { type, toolMessage, data };
 }
 
 export async function handler(request) {
@@ -85,6 +89,7 @@ export async function handler(request) {
     const ret = await handleToolCalls(response.choices[0].message, chatManager);
     toolMessage = ret.toolMessage;
     type = ret.type;
+    data = ret.data;
   } else {
     session.chatHistory.push({ role: "assistant", content: response?.choices[0].message.content });
   }

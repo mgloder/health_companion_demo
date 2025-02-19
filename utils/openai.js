@@ -14,12 +14,13 @@ logger.info({
   proxyUrl: process.env.ALL_PROXY
 });
 
-export async function createChatCompletion({ 
-  messages, 
-  model = "gpt-4o-mini", 
+export async function createChatCompletion({
+  messages,
+  model = "gpt-4o-mini",
   temperature = 0.7,
   tools = null,
-  tool_choice = null 
+  tool_choice = null ,
+  response_format = { type: 'text' },
 }) {
   if (!process.env.OPENAI_API_KEY) {
     throw new Error('OPENAI_API_KEY environment variable is required');
@@ -45,7 +46,8 @@ export async function createChatCompletion({
         model: model,
         temperature: temperature,
         tools: tools,
-        tool_choice: tool_choice
+        tool_choice: tool_choice,
+        response_format
     });
 
     return completion;

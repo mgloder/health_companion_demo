@@ -158,17 +158,26 @@ function renderFormItem(data) {
     ;
 }
 
-function renderConfirmItem(content, onAction) {
+function renderConfirmItem(data, onAction) {
   const [isClicked, setIsClicked] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
-      <p className="text-[15px]">{content}</p>
-      <div className="mt-1 float-right">
+      <p className="text-[15px]">可能有以下疾病</p>
+      {
+        <ul className="text-sis-purple ml-2 mt-1 text-sm leading-[18px] list-disc list-inside">
+          {data.diseases.map((item, index) => {
+            return (<li key={index}>{item}</li>);
+          })}
+        </ul>
+      }
+      <p className="mt-2 text-[15px]">{data.recommendation}</p>
+      <div className="mt-0.5 float-right">
         {
           isClicked ?
             <>
-              <div className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
+              <div
+                className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
                 { isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> : <XCircle className="text-sis-blue" size={17} />}
                 { isConfirmed ? "已确认" : "已否认" }
               </div>
@@ -212,7 +221,7 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
     }
 
     if (type === "confirm") {
-      return renderConfirmItem(content, onAction);
+      return renderConfirmItem(data, onAction);
     }
 
     if (type === "upload-file") {
