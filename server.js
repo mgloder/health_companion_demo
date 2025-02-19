@@ -67,9 +67,15 @@ const sessionSecret = process.env.SECRET_KEY || crypto.randomBytes(32).toString(
 const sessionConfig = {
   secret: sessionSecret,
   cookie: {
-    secure: process.env.NODE_ENV === "production",
+    secure: true,  // Since we're using HTTPS on Azure
     httpOnly: true,
+    maxAge: 86400000,  // 24 hours in milliseconds
+    sameSite: 'strict',  // Changed to strict since it's same-origin
+    path: '/',
+    domain: undefined,  // Let the browser set the domain automatically
   },
+  saveUninitialized: false,
+  rolling: true,
   cookieName: 'sessionId'
 };
 
