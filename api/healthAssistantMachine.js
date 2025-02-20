@@ -1,4 +1,4 @@
-import { createChatCompletion } from "../utils/openai.js";
+import { createChatCompletion, stringsRankedByRelatedness } from "../utils/openai.js";
 
 const MAX_FOLLOW_UP_QUESTIONS = 3;
 
@@ -22,6 +22,19 @@ const USER_CONFIRM_DIAGNOSIS = {
   type: "function",
   function: {
     name: "user_confirm_diagnosis",
+    parameters: {
+      type: "object",
+      properties: {
+        possible_diseases: {
+          type: "array",
+          items: {
+            type: "string",
+            description: "可能的疾病",
+          },
+        },
+      },
+      required: ["possible_diseases"],
+    },
     description: "用户确认病情与 AI 描述一致",
   },
 };
@@ -50,6 +63,14 @@ const USER_REJECT_UPLOAD = {
   },
 };
 
+const USER_NEED_MORE_DETAIL = {
+  type: "function",
+  function: {
+    name: "user_need_more_detail",
+    description: "用户想要了解更多信息",
+  },
+};
+
 const CONFIRM_RESPONSE_FORMAT =  {
   "type": "json_schema",
     "json_schema": {
@@ -69,10 +90,43 @@ const CONFIRM_RESPONSE_FORMAT =  {
         }
       },
       "required": ["diseases", "recommendation"],
-        "additionalProperties": false
+      "additionalProperties": false,
+    },
+  },
+};
+
+const INSURANCE_COVERAGE_RESPONSE = {
+  "type": "json_schema",
+  "json_schema": {
+    "name": "insurance_coverage_response",
+    "strict": true,
+    "schema": {
+      "type": "object",
+      "properties": {
+        "summaries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "disease": {
+                "type": "string",
+                "description": "疾病"
+              },
+              "summary": {
+                "type": "string",
+                "description": "一句话总结疾病是否在保险中覆盖"
+              }
+            },
+            "required": ["disease", "summary"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["summaries"],
+      "additionalProperties": false
     }
   }
-}
+};
 
 export const STEPS = {
   COLLECT_INFO: 1,
@@ -81,7 +135,7 @@ export const STEPS = {
   GENERATE_INSURANCE_COVERAGE: 4,
   DOCUMENT_Q_AND_A: 5,
   DOCTOR_RECOMMENDATION: 6,
-  USER_CONFIRM_RECOMMENDATION: 7
+  USER_CONFIRM_RECOMMENDATION: 7,
 };
 
 
@@ -100,13 +154,13 @@ export class ChatManager {
       this.addToolChatMessage(toolCallId, `根据用户的症状去询问更细节的症状, 问题应该简洁`);
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
-      this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出可能的疾病 请以纯文本的方式回复`);
+      this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出最有可能的三种疾病 请以纯文本的方式回复`);
       response_format = CONFIRM_RESPONSE_FORMAT;
     }
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: this.getChatHistory(),
-      response_format
+      response_format,
     });
     this.addChatMessage(response.choices[0].message);
     return response.choices[0].message.content;
@@ -114,6 +168,7 @@ export class ChatManager {
 
   async handleConfirmDiagnosis(toolCallId, args) {
     this.session.currentStep = STEPS.CONFIRMED_WITH_USER;
+    this.session.possibleDiseases = args.possible_diseases;
 
     this.addToolChatMessage(toolCallId, `回复 "好的，我明白了！为了方便我帮您查询，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
     const response = await createChatCompletion({
@@ -135,6 +190,38 @@ export class ChatManager {
       model: "gpt-4o-mini",
       messages: this.getChatHistory(),
     });
+    this.addChatMessage(response.choices[0].message);
+    return response.choices[0].message.content;
+  }
+
+  async handleUploadedInsuranceCoverage(toolCallId, args) {
+    this.session.currentStep = STEPS.GENERATE_INSURANCE_COVERAGE;
+    const [ret] = await stringsRankedByRelatedness(`帮我找到与这些疾病有关的信息 ${this.session.possibleDiseases}`, 1);
+    const { content } = ret;
+    const messages = [{
+      role: "user",
+      content: `Question: 对于每个疾病一句话总结是否在疾病中覆盖 疾病: ${this.session.possibleDiseases}; Reference: ${content}`,
+    }];
+
+    const response = await createChatCompletion({
+      messages: messages,
+      response_format: INSURANCE_COVERAGE_RESPONSE,
+    });
+
+    return response.choices[0].message.content;
+  }
+
+  async handleNeedMoreDetail(toolCallId, args) {
+    this.session.currentStep = STEPS.DOCUMENT_Q_AND_A;
+    this.addToolChatMessage(toolCallId, '回复 "好的，我明白了！您有什么关于医疗保险相关的问题都可以问我哦～。我会根据您的症状，看看保险是否覆盖相关的疾病"');
+
+    console.log(this.getChatHistory());
+
+    const response = await createChatCompletion({
+      model: "gpt-4o-mini",
+      messages: this.getChatHistory(),
+    });
+
     this.addChatMessage(response.choices[0].message);
     return response.choices[0].message.content;
   }
@@ -180,6 +267,10 @@ export class ChatManager {
     if (this.getCurrentStep() === STEPS.CONFIRMED_WITH_USER) {
       tools.push(USER_UPLOADED_INSURANCE_COVERAGE);
       tools.push(USER_REJECT_UPLOAD);
+    }
+
+    if (this.getCurrentStep() === STEPS.GENERATE_INSURANCE_COVERAGE) {
+      tools.push(USER_NEED_MORE_DETAIL);
     }
 
     return tools;

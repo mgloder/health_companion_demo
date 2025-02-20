@@ -1,4 +1,4 @@
-import { createChatCompletion } from '../utils/openai.js';
+import { createChatCompletion } from "../utils/openai.js";
 import { ChatManager, STEPS } from "./healthAssistantMachine.js";
 
 export function registerChatRoutes(server) {
@@ -26,13 +26,13 @@ async function handleToolCalls(message, chatManager) {
   let toolMessage = '';
   let type = 'text';
   let data = null;
-  chatManager.addChatMessage(message);
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
     console.log(`${name} tool call arguments:`, argStr);
     const args = JSON.parse(argStr);
 
     if (name === "collect_user_symptoms") {
+      chatManager.addChatMessage(message);
       toolMessage = await chatManager.handleCollectInfo(toolCallId, args);
       if (chatManager.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES) {
         type = 'confirm'
@@ -41,21 +41,32 @@ async function handleToolCalls(message, chatManager) {
     }
 
     if (name === "user_confirm_diagnosis") {
+      chatManager.addChatMessage(message);
       toolMessage = await chatManager.handleConfirmDiagnosis(toolCallId, args);
       type = 'confirm_upload'
     }
 
     if (name === "user_reject_diagnosis") {
+      chatManager.addChatMessage(message);
       toolMessage = await chatManager.handleRejectDiagnosis(toolCallId, args);
     }
 
     if (name === "user_uploaded_insurance_coverage") {
-      console.log("user_uploaded_insurance_coverage called");
+      toolMessage = await chatManager.handleUploadedInsuranceCoverage(toolCallId, args);
+      type = 'confirm_insurance'
+      data = JSON.parse(toolMessage);
     }
 
     if (name === "user_reject_upload") {
       console.log("user_reject_upload called");
     }
+    if (name === "user_need_more_detail") {
+      chatManager.addChatMessage(message);
+      toolMessage = await chatManager.handleNeedMoreDetail(toolCallId, args);
+      type = 'text'
+    }
+
+
   }
   return { type, toolMessage, data };
 }
@@ -77,6 +88,7 @@ export async function handler(request) {
   const chatManager = new ChatManager({ session });
 
   let response;
+  console.log(session.chatHistory);
   try {
     response = await createChatCompletion({
       model: "gpt-4o-mini",

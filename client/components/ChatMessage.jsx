@@ -7,7 +7,7 @@ import axa from "../assets/axa.png";
 import bluecross from "../assets/bluecross.png";
 import hongleong from "../assets/hongleong.png";
 import { useState } from "react";
-import UploadCard from './UploadCard';
+import UploadCard from "./UploadCard";
 
 
 const imgMap = {
@@ -178,8 +178,9 @@ function renderConfirmItem(data, onAction) {
             <>
               <div
                 className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
-                { isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> : <XCircle className="text-sis-blue" size={17} />}
-                { isConfirmed ? "已确认" : "已否认" }
+                {isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> :
+                  <XCircle className="text-sis-blue" size={17} />}
+                {isConfirmed ? "已确认" : "已否认"}
               </div>
             </> :
             <>
@@ -217,8 +218,9 @@ function renderConfirmUploadItem(content, onAction) {
             <>
               <div
                 className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
-                { isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> : <XCircle className="text-sis-blue" size={17} />}
-                { isConfirmed ? "已上传" : "已取消" }
+                {isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> :
+                  <XCircle className="text-sis-blue" size={17} />}
+                {isConfirmed ? "已上传" : "已取消"}
               </div>
             </> :
             <>
@@ -237,6 +239,43 @@ function renderConfirmUploadItem(content, onAction) {
                       }}>取消
               </button>
             </>
+        }
+      </div>
+
+    </div>
+  );
+}
+
+function renderConfirmInsurance(data, onAction) {
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  return (
+    <div className="">
+      <p className="text-[15px]">这是我根据医疗保单查找的信息</p>
+      {
+        <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">
+          {data.summaries.map((item, index) => {
+            return (
+              <li key={index} className="mb-1">
+                <b>{item.disease}</b>
+                <br/>
+                <p className="mt-1 ml-4 text-sm text-black">{item.summary}</p>
+              </li>
+            );
+          })}
+        </ul>
+      }
+      <div className="mt-0.5 float-right">
+        {
+          <>
+            <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-36 leading-8 text-sis-blue"
+                    onClick={() => {
+                      setIsConfirmed(true);
+                      !isConfirmed && onAction("我想要询问更多相关信息");
+                    }}>
+              {isConfirmed && <CheckCircle className="inline-block text-sis-blue mr-1" size={17} />}
+              询问更多相关信息
+            </button>
+          </>
         }
       </div>
 
@@ -267,11 +306,15 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
       return renderConfirmUploadItem(content, onAction);
     }
 
+    if (type === "confirm_insurance") {
+      return renderConfirmInsurance(data, onAction);
+    }
+
     if (type === "upload-file") {
       return (
         <div className="flex flex-col gap-3">
           <p className="text-gray-800">{content}</p>
-          <UploadCard onUpload={(files) => onAction('upload-files', files)} />
+          <UploadCard onUpload={(files) => onAction("upload-files", files)} />
         </div>
       );
     }
