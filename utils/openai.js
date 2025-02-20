@@ -2,10 +2,8 @@ import pino from "pino";
 import OpenAI from 'openai';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { cosineSimilarity } from "./math.js";
-// eslint-disable-next-line
-import embeddingDoc from "../data/embeddings.json" assert { type: 'json' };
-// eslint-disable-next-line
-import contentDoc from "../data/content.json" assert { type: 'json' };
+import embeddingDoc from "../data/embeddings.json" with { type: "json" };
+import contentDoc from "../data/content.json" with { type: "json" };
 
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info'
