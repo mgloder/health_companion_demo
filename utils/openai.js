@@ -2,7 +2,9 @@ import pino from "pino";
 import OpenAI from 'openai';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { cosineSimilarity } from "./math.js";
+// eslint-disable-next-line
 import embeddingDoc from "../data/embeddings.json" assert { type: 'json' };
+// eslint-disable-next-line
 import contentDoc from "../data/content.json" assert { type: 'json' };
 
 const logger = pino({

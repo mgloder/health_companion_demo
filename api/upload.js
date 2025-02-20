@@ -7,7 +7,7 @@ import { chunkText } from '../utils/text.js';
 import { saveDataToFiles } from '../utils/storage.js';
 import { embeddingsStore, HARDCODED_KEY } from '../utils/store.js';
 import { openai } from '../utils/openai.js';
-import Pdf from "pdf-parse";
+import pdf from "pdf-parse/lib/pdf-parse.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -33,7 +33,7 @@ export function registerUploadRoutes(server) {
         // 读取 PDF 文件内容
         const dataBuffer = readFileSync(filepath);
         // 解析 PDF 文件
-        const pdfData = await Pdf(dataBuffer);
+        const pdfData = await pdf(dataBuffer);
 
         const fileContent = pdfData.text;
         const chunks = chunkText(fileContent);
