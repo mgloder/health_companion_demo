@@ -42,10 +42,19 @@ async function handleToolCalls(message, chatManager) {
 
     if (name === "user_confirm_diagnosis") {
       toolMessage = await chatManager.handleConfirmDiagnosis(toolCallId, args);
+      type = 'confirm_upload'
     }
 
     if (name === "user_reject_diagnosis") {
       toolMessage = await chatManager.handleRejectDiagnosis(toolCallId, args);
+    }
+
+    if (name === "user_uploaded_insurance_coverage") {
+      console.log("user_uploaded_insurance_coverage called");
+    }
+
+    if (name === "user_reject_upload") {
+      console.log("user_reject_upload called");
     }
   }
   return { type, toolMessage, data };

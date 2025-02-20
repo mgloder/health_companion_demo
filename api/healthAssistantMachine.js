@@ -34,6 +34,22 @@ const USER_REJECT_DIAGNOSIS = {
   },
 };
 
+const USER_UPLOADED_INSURANCE_COVERAGE = {
+  type: "function",
+  function: {
+    name: "user_uploaded_insurance_coverage",
+    description: "用户确认了上传相关的医疗保险文档",
+  },
+};
+
+const USER_REJECT_UPLOAD = {
+  type: "function",
+  function: {
+    name: "user_reject_upload",
+    description: "用户拒绝了上传相关的医疗保险文档",
+  },
+};
+
 const CONFIRM_RESPONSE_FORMAT =  {
   "type": "json_schema",
     "json_schema": {
@@ -99,12 +115,11 @@ export class ChatManager {
   async handleConfirmDiagnosis(toolCallId, args) {
     this.session.currentStep = STEPS.CONFIRMED_WITH_USER;
 
-    this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 推荐挂号的科室`);
+    this.addToolChatMessage(toolCallId, `回复 "好的，我明白了！为了方便我帮您查询，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: this.getChatHistory(),
     });
-    console.log(this.getChatHistory());
     this.addChatMessage(response.choices[0].message);
     return response.choices[0].message.content;
   }
@@ -161,6 +176,12 @@ export class ChatManager {
       tools.push(USER_CONFIRM_DIAGNOSIS);
       tools.push(USER_REJECT_DIAGNOSIS);
     }
+
+    if (this.getCurrentStep() === STEPS.CONFIRMED_WITH_USER) {
+      tools.push(USER_UPLOADED_INSURANCE_COVERAGE);
+      tools.push(USER_REJECT_UPLOAD);
+    }
+
     return tools;
   }
 }

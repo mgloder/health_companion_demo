@@ -205,6 +205,45 @@ function renderConfirmItem(data, onAction) {
   );
 }
 
+function renderConfirmUploadItem(content, onAction) {
+  const [isClicked, setIsClicked] = useState(false);
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  return (
+    <div className="">
+      <p className="text-[15px]">{content}</p>
+      <div className="mt-0.5 float-right">
+        {
+          isClicked ?
+            <>
+              <div
+                className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
+                { isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> : <XCircle className="text-sis-blue" size={17} />}
+                { isConfirmed ? "已上传" : "已取消" }
+              </div>
+            </> :
+            <>
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
+                      onClick={() => {
+                        setIsClicked(true);
+                        setIsConfirmed(true);
+                        onAction("我已上传相关的医疗保险文档");
+                      }}>上传
+              </button>
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
+                      onClick={() => {
+                        setIsClicked(true);
+                        setIsConfirmed(false);
+                        onAction("我已取消上传相关的医疗保险文档");
+                      }}>取消
+              </button>
+            </>
+        }
+      </div>
+
+    </div>
+  );
+}
+
 export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data, onAction }) {
   if (type === "hidden") {
     return <></>;
@@ -222,6 +261,10 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
 
     if (type === "confirm") {
       return renderConfirmItem(data, onAction);
+    }
+
+    if (type === "confirm_upload") {
+      return renderConfirmUploadItem(content, onAction);
     }
 
     if (type === "upload-file") {
