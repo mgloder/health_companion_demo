@@ -2,6 +2,7 @@ import { zodResponseFormat } from "openai/helpers/zod";
 
 import { createChatCompletion, stringsRankedByRelatedness } from "../utils/openai.js";
 import { TOOLS, RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
+import doctors from "../data/dummy_medical_data.json" with { type: "json" };
 
 const MAX_FOLLOW_UP_QUESTIONS = 3;
 
@@ -92,8 +93,6 @@ export class ChatManager {
     this.session.currentStep = STEPS.DOCUMENT_Q_AND_A;
     this.addToolChatMessage(toolCallId, '回复 "好的，我明白了！您有什么关于医疗保险相关的问题都可以问我哦～。我会根据您的症状，看看保险是否覆盖相关的疾病"');
 
-    console.log(this.getChatHistory());
-
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: this.getChatHistory(),
@@ -103,12 +102,46 @@ export class ChatManager {
     return response.choices[0].message.content;
   }
 
+  handleNeedRecommendDoctor(toolCallId, args) {
+    this.session.currentStep = STEPS.DOCTOR_RECOMMENDATION;
+    return '为了更好地为您推荐合适的医生，请告诉我您的偏好，例如：医生的专业领域、性别、语言、就诊方式（线上或线下）等，我会根据您的需求为您匹配最合适的医生。'
+  }
+
+  async handlePreferDoctor(toolCallId, args) {
+    let filteredDoctor = doctors;
+    if (args.city) {
+      filteredDoctor = doctors.hospitals.filter(doctor => doctor.address.city === args.city);
+    }
+    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生`);
+
+    const response = await createChatCompletion({
+      model: "gpt-4o-mini",
+      messages: this.session.recommendDoctorHistory,
+    });
+
+    this.addRecommendMessage(response.choices[0].message);
+    console.log(this.session.recommendDoctorHistory);
+    return response.choices[0].message.content;
+  }
+
   addChatMessage(message) {
     this.session.chatHistory.push(message);
   }
 
   addToolChatMessage(toolCallId, content) {
     this.session.chatHistory.push({
+      role: "tool",
+      tool_call_id: toolCallId,
+      content,
+    });
+  }
+
+  addRecommendMessage(message) {
+    this.session.recommendDoctorHistory.push(message);
+  }
+
+  addToolRecommendMessage(toolCallId, content) {
+    this.session.recommendDoctorHistory.push({
       role: "tool",
       tool_call_id: toolCallId,
       content,
@@ -148,6 +181,14 @@ export class ChatManager {
 
     if (this.getCurrentStep() === STEPS.GENERATE_INSURANCE_COVERAGE) {
       tools.push(TOOLS.USER_NEED_MORE_DETAIL);
+    }
+
+    if (this.getCurrentStep() === STEPS.DOCUMENT_Q_AND_A) {
+      tools.push(TOOLS.USER_NEED_RECOMMEND_DOCTOR);
+    }
+
+    if (this.getCurrentStep() === STEPS.DOCTOR_RECOMMENDATION) {
+      tools.push(TOOLS.USER_PREFER_DOCTOR);
     }
 
     return tools;

@@ -283,6 +283,30 @@ function renderConfirmInsurance(data, onAction) {
   );
 }
 
+function renderConfirmDoctor(content, onAction) {
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  return (
+    <div className="">
+      <p className="text-[15px]">{content}</p>
+      <div className="mt-2 float-right">
+        {
+          <>
+            <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-24 leading-8 text-sis-blue"
+                    onClick={() => {
+                      setIsConfirmed(true);
+                      !isConfirmed && onAction("我想要推荐医生");
+                    }}>
+              {isConfirmed && <CheckCircle className="inline-block text-sis-blue mr-1" size={17} />}
+              推荐医生
+            </button>
+          </>
+        }
+      </div>
+
+    </div>
+  );
+}
+
 export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data, onAction }) {
   if (type === "hidden") {
     return <></>;
@@ -308,6 +332,10 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
 
     if (type === "confirm_insurance") {
       return renderConfirmInsurance(data, onAction);
+    }
+
+    if (type === "confirm_doctor") {
+      return renderConfirmDoctor(content, onAction);
     }
 
     if (type === "upload-file") {

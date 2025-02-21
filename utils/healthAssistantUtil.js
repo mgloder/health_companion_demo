@@ -69,6 +69,40 @@ const USER_NEED_MORE_DETAIL = {
   },
 };
 
+const USER_NEED_RECOMMEND_DOCTOR = {
+  type: "function",
+  function: {
+    name: "user_need_recommend_doctor",
+    description: "用户想要推荐合适的医生",
+  },
+};
+
+const USER_PREFER_DOCTOR = {
+  type: "function",
+  function: {
+    name: "user_prefer_doctor",
+    description: "收集用户对医生的偏好和所在城市",
+    parameters: {
+      type: "object",
+      properties: {
+        city: {
+          type: "string",
+          description: "用户所在城市",
+        },
+        preferences: {
+          type: "array",
+          items: {
+            type: "string",
+            description: "用户对医生的偏好，如专科、经验等",
+          },
+        },
+      },
+      required: ["city"],
+    },
+  },
+};
+
+
 const CONFIRM_RESPONSE_FORMAT =  z.object({
   diseases: z.array(z.string()),
   recommendation: z.string(),
@@ -87,7 +121,9 @@ export const TOOLS = {
   USER_REJECT_DIAGNOSIS,
   USER_UPLOADED_INSURANCE_COVERAGE,
   USER_REJECT_UPLOAD,
-  USER_NEED_MORE_DETAIL
+  USER_NEED_MORE_DETAIL,
+  USER_NEED_RECOMMEND_DOCTOR,
+  USER_PREFER_DOCTOR
 }
 
 export const RESPONSE_FORMAT = {
