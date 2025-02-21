@@ -1,132 +1,9 @@
+import { zodResponseFormat } from "openai/helpers/zod";
+
 import { createChatCompletion, stringsRankedByRelatedness } from "../utils/openai.js";
+import { TOOLS, RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
 
 const MAX_FOLLOW_UP_QUESTIONS = 3;
-
-const COLLECT_USER_SYMPTOMS = {
-  type: "function",
-  function: {
-    name: "collect_user_symptoms",
-    parameters: {
-      type: "object",
-      properties: {
-        symptoms: { type: "string", description: "用户描述的具体生理症状" },
-        others: { type: "string", description: "用户提供的其他相关信息" },
-      },
-      required: ["primary_symptoms"],
-    },
-    description: "收集用户提供的症状及相关信息",
-  },
-};
-
-const USER_CONFIRM_DIAGNOSIS = {
-  type: "function",
-  function: {
-    name: "user_confirm_diagnosis",
-    parameters: {
-      type: "object",
-      properties: {
-        possible_diseases: {
-          type: "array",
-          items: {
-            type: "string",
-            description: "可能的疾病",
-          },
-        },
-      },
-      required: ["possible_diseases"],
-    },
-    description: "用户确认病情与 AI 描述一致",
-  },
-};
-
-const USER_REJECT_DIAGNOSIS = {
-  type: "function",
-  function: {
-    name: "user_reject_diagnosis",
-    description: "用户确认病情与 AI 描述不一致",
-  },
-};
-
-const USER_UPLOADED_INSURANCE_COVERAGE = {
-  type: "function",
-  function: {
-    name: "user_uploaded_insurance_coverage",
-    description: "用户确认了上传相关的医疗保险文档",
-  },
-};
-
-const USER_REJECT_UPLOAD = {
-  type: "function",
-  function: {
-    name: "user_reject_upload",
-    description: "用户拒绝了上传相关的医疗保险文档",
-  },
-};
-
-const USER_NEED_MORE_DETAIL = {
-  type: "function",
-  function: {
-    name: "user_need_more_detail",
-    description: "用户想要了解更多信息",
-  },
-};
-
-const CONFIRM_RESPONSE_FORMAT =  {
-  "type": "json_schema",
-    "json_schema": {
-    "name": "health_assistant_response",
-      "strict": true,
-      "schema": {
-      "type": "object",
-        "properties": {
-        "diseases": {
-          "type": "array",
-            "items": {
-            "type": "string"
-          }
-        },
-        "recommendation": {
-          "type": "string"
-        }
-      },
-      "required": ["diseases", "recommendation"],
-      "additionalProperties": false,
-    },
-  },
-};
-
-const INSURANCE_COVERAGE_RESPONSE = {
-  "type": "json_schema",
-  "json_schema": {
-    "name": "insurance_coverage_response",
-    "strict": true,
-    "schema": {
-      "type": "object",
-      "properties": {
-        "summaries": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "disease": {
-                "type": "string",
-                "description": "疾病"
-              },
-              "summary": {
-                "type": "string",
-                "description": "一句话总结疾病是否在保险中覆盖"
-              }
-            },
-            "required": ["disease", "summary"],
-            "additionalProperties": false
-          }
-        }
-      },
-      "required": ["summaries"],
-      "additionalProperties": false
-    }
-  }
-};
 
 export const STEPS = {
   COLLECT_INFO: 1,
@@ -155,7 +32,7 @@ export class ChatManager {
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
       this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出最有可能的三种疾病 请以纯文本的方式回复`);
-      response_format = CONFIRM_RESPONSE_FORMAT;
+      response_format = zodResponseFormat(RESPONSE_FORMAT.CONFIRM_RESPONSE_FORMAT, 'confirm_response_format');
     }
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
@@ -205,7 +82,7 @@ export class ChatManager {
 
     const response = await createChatCompletion({
       messages: messages,
-      response_format: INSURANCE_COVERAGE_RESPONSE,
+      response_format: zodResponseFormat(RESPONSE_FORMAT.INSURANCE_COVERAGE_RESPONSE, 'insurance_coverage_response'),
     });
 
     return response.choices[0].message.content;
@@ -257,20 +134,20 @@ export class ChatManager {
   getTools() {
     let tools = [];
     if (this.getCurrentStep() === STEPS.COLLECT_INFO) {
-      tools.push(COLLECT_USER_SYMPTOMS);
+      tools.push(TOOLS.COLLECT_USER_SYMPTOMS);
     }
     if (this.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES) {
-      tools.push(USER_CONFIRM_DIAGNOSIS);
-      tools.push(USER_REJECT_DIAGNOSIS);
+      tools.push(TOOLS.USER_CONFIRM_DIAGNOSIS);
+      tools.push(TOOLS.USER_REJECT_DIAGNOSIS);
     }
 
     if (this.getCurrentStep() === STEPS.CONFIRMED_WITH_USER) {
-      tools.push(USER_UPLOADED_INSURANCE_COVERAGE);
-      tools.push(USER_REJECT_UPLOAD);
+      tools.push(TOOLS.USER_UPLOADED_INSURANCE_COVERAGE);
+      tools.push(TOOLS.USER_REJECT_UPLOAD);
     }
 
     if (this.getCurrentStep() === STEPS.GENERATE_INSURANCE_COVERAGE) {
-      tools.push(USER_NEED_MORE_DETAIL);
+      tools.push(TOOLS.USER_NEED_MORE_DETAIL);
     }
 
     return tools;
