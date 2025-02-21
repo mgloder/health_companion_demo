@@ -1,6 +1,8 @@
 import { createChatCompletion, stringsRankedByRelatedness } from "../utils/openai.js";
 import { ChatManager, STEPS } from "./healthAssistantMachine.js";
 import doctors from "../data/dummy_medical_data.json" with { type: "json" };
+import { zodResponseFormat } from "openai/helpers/zod";
+import { RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
 
 export function registerChatRoutes(server) {
   server.post("/api/chat", async (request, reply) => {
@@ -73,6 +75,7 @@ async function handleToolCalls(message, chatManager) {
     if (name === "user_prefer_doctor") {
       chatManager.addRecommendMessage(message);
       toolMessage = await chatManager.handlePreferDoctor(toolCallId, args);
+      type = "recommend_doctor";
     }
 
 
@@ -118,11 +121,12 @@ async function handleDoctorRecommendation(session, message, chatManager) {
   const response = await createChatCompletion({
     messages: session.recommendDoctorHistory,
     tools: chatManager.getTools(),
-    tool_choice: 'auto'
+    tool_choice: 'auto',
+    response_format: zodResponseFormat(RESPONSE_FORMAT.RECOMMEND_DOCTOR, 'recommend_doctor')
   });
 
   let toolMessage;
-  let type = "confirm_doctor";
+  let type = "recommend_doctor";
   let data = null;
 
   if (response?.choices[0].message.tool_calls) {
@@ -130,9 +134,9 @@ async function handleDoctorRecommendation(session, message, chatManager) {
     const ret = await handleToolCalls(response.choices[0].message, chatManager);
     toolMessage = ret.toolMessage;
     type = ret.type;
-    data = ret.data;
   }
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
+  data = JSON.parse(chatMessage);
   session.recommendDoctorHistory.push({ role: "assistant", content: chatMessage });
   console.log(session.recommendDoctorHistory);
   return { message: chatMessage, type, data };

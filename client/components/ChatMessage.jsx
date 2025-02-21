@@ -307,6 +307,28 @@ function renderConfirmDoctor(content, onAction) {
   );
 }
 
+function renderRecommendDoctor(data) {
+  return (
+    <div className="">
+      <p className="text-[15px] mb-1">这边帮您推荐了一下医生：</p>
+      {
+        <ul className="text-sis-purple ml-2 mt-1 text-sm leading-[18px] list-disc list-inside">
+          {data.doctors.map((item, index) => {
+            return (<li className="mb-1" key={index}>
+              <b className="text-base">{item.doctor}</b>
+              <br />
+              <p className="mt-0.5 ml-4 text-xs text-black">科室：{item.specialty}</p>
+              <p className="mt-0.5 ml-4 text-xs text-black">工作经验：{item.experience}</p>
+              <p className="mt-0.5 ml-4 text-xs text-black">评价：{item.summary}</p>
+            </li>);
+          })}
+        </ul>
+      }
+      <p className="mt-2 text-[15px]">{data.recommendation}</p>
+    </div>
+  );
+}
+
 export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data, onAction }) {
   if (type === "hidden") {
     return <></>;
@@ -336,6 +358,10 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
 
     if (type === "confirm_doctor") {
       return renderConfirmDoctor(content, onAction);
+    }
+
+    if (type === "recommend_doctor") {
+      return renderRecommendDoctor(data, onAction);
     }
 
     if (type === "upload-file") {

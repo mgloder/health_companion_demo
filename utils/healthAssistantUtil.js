@@ -115,6 +115,15 @@ const INSURANCE_COVERAGE_RESPONSE = z.object({
   })),
 });
 
+const RECOMMEND_DOCTOR = z.object({
+  doctors: z.array(z.object({
+    doctor: z.string().describe('医生姓名'),
+    experience: z.string().describe('工作经验'),
+    specialty: z.string().describe('科室'),
+    summary: z.string().describe('用中文一句话总结病人对医生的评价')
+  })),
+});
+
 export const TOOLS = {
   COLLECT_USER_SYMPTOMS,
   USER_CONFIRM_DIAGNOSIS,
@@ -129,4 +138,5 @@ export const TOOLS = {
 export const RESPONSE_FORMAT = {
   CONFIRM_RESPONSE_FORMAT,
   INSURANCE_COVERAGE_RESPONSE,
+  RECOMMEND_DOCTOR
 }

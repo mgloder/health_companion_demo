@@ -112,11 +112,12 @@ export class ChatManager {
     if (args.city) {
       filteredDoctor = doctors.hospitals.filter(doctor => doctor.address.city === args.city);
     }
-    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生`);
+    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。 以纯文本的方式回复`);
 
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
       messages: this.session.recommendDoctorHistory,
+      response_format: zodResponseFormat(RESPONSE_FORMAT.RECOMMEND_DOCTOR, 'recommend_doctor')
     });
 
     this.addRecommendMessage(response.choices[0].message);
