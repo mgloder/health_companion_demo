@@ -111,6 +111,9 @@ export class ChatManager {
     let filteredDoctor = doctors;
     if (args.city) {
       filteredDoctor = doctors.hospitals.filter(doctor => doctor.address.city === args.city);
+      if (!filteredDoctor || filteredDoctor.length === 0) {
+        filteredDoctor = doctors;
+      }
     }
     this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。 以纯文本的方式回复`);
 
