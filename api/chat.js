@@ -88,12 +88,20 @@ async function handleToolCalls(message, chatManager) {
   return { type, toolMessage, data };
 }
 
-async function handleInsuranceQA(message, chatManager) {
+async function handleInsuranceQA(session, message, chatManager) {
   const ret = await stringsRankedByRelatedness(message, 1);
   const { content } = ret[0];
-  let messages = [{ role: "user", content: `Question: ${message}; Reference: ${content}` }];
+  if (!session.insuranceQAHistory) {
+    session.insuranceQAHistory = [
+      {
+        role: "developer",
+        content: `You are a helpful health insurance Q&A assistant.`,
+      },
+    ];
+  }
+  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDiseases} and confirmed insurance info ${session.insuranceInfo}, Question: ${message}; Reference: ${content}` });
   const response = await createChatCompletion({
-    messages: messages,
+    messages: session.insuranceQAHistory,
     tools: chatManager.getTools(),
     tool_choice: 'auto'
   });
@@ -110,6 +118,7 @@ async function handleInsuranceQA(message, chatManager) {
     data = ret.data;
   }
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
+  session.insuranceQAHistory.push({ role: "assistant", content: chatMessage });
   return { message: chatMessage, type, data };
 }
 
@@ -153,7 +162,7 @@ async function handleDoctorQA(session, message, chatManager) {
     session.doctorQAHistory = [
       {
         role: "developer",
-        content: `You are a helpful health assistant. Reference: insurance_info: ${session.insuranceInfo} disease:${session.possibleDiseases} prefer_doctors: ${JSON.stringify(session.preferDoctors)} all_doctors: ${JSON.stringify(doctors)}`,
+        content: `You are a helpful health assistant. Reference: insurance_info: ${session.insuranceInfo} disease:${session.possibleDiseases} prefer_doctor: ${JSON.stringify(session.preferDoctor)} all_doctors: ${JSON.stringify(doctors)}`,
       },
     ];
   }
@@ -192,7 +201,7 @@ export async function handler(request) {
   }
 
   if (session.currentStep === STEPS.DOCUMENT_Q_AND_A) {
-    return await handleInsuranceQA(message, chatManager);
+    return await handleInsuranceQA(session, message, chatManager);
   }
 
   if (session.currentStep === STEPS.DOCTOR_RECOMMENDATION) {

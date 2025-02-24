@@ -139,42 +139,32 @@ const USER_CONFIRM_DOCTOR = {
   type: "function",
   function: {
     name: "user_confirm_doctor",
-    description: "用户确认推荐的医生符合要求",
+    description: "用户确认要预约推荐的医生",
     parameters: {
       type: "object",
       properties: {
-        doctors: {
-          type: "array",
-          description: "用户确认的医生列表",
-          items: {
-            type: "object",
-            properties: {
-              doctor_name: {
-                type: "string",
-                description: "医生的姓名",
-              },
-              specialty: {
-                type: "string",
-                description: "医生的专科",
-              },
-              experience: {
-                type: "string",
-                description: "医生的经验（如‘10年经验’）",
-              },
-              hospital: {
-                type: "string",
-                description: "医生所在的医院或诊所",
-              },
-              city: {
-                type: "string",
-                description: "医生所在的城市",
-              }
-            },
-            required: ["doctor_name", "specialty", "hospital", "city"],
-          },
+        doctor_name: {
+          type: "string",
+          description: "医生的姓名",
         },
+        specialty: {
+          type: "string",
+          description: "医生的专科",
+        },
+        experience: {
+          type: "string",
+          description: "医生的经验（如‘10年经验’）",
+        },
+        hospital: {
+          type: "string",
+          description: "医生所在的医院或诊所",
+        },
+        address: {
+          type: "string",
+          description: "医生所在的地址",
+        }
       },
-      required: ["doctors"],
+      required: ["doctor_name", "specialty", "hospital", "city"],
     },
   },
 };
@@ -196,7 +186,9 @@ const RECOMMEND_DOCTOR = z.object({
     doctor: z.string().describe('医生姓名'),
     experience: z.string().describe('工作经验'),
     specialty: z.string().describe('科室'),
-    summary: z.string().describe('用中文一句话总结病人对医生的评价')
+    address: z.string().describe('工作地址'),
+    opening_hours: z.string().describe('营业时间'),
+    summary: z.string().describe('用第三人称陈述病人对医生的评价，不超过50个字')
   })),
 });
 

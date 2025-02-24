@@ -118,7 +118,7 @@ export class ChatManager {
         filteredDoctor = doctors;
       }
     }
-    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases} 和症状 ${this.session.symptoms}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。 以纯文本的方式回复`);
+    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases} 和症状 ${this.session.symptoms}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。以用户的语言作为回复`);
 
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
@@ -133,7 +133,7 @@ export class ChatManager {
 
   async handleConfirmDoctor(toolCallId, args) {
     this.session.currentStep = STEPS.USER_CONFIRMED_DOCTOR_RECOMMENDATION;
-    this.session.preferDoctors = args?.doctors;
+    this.session.preferDoctor = args;
 
     return '好的，关于医生的选择，您还有其他问题吗？我很乐意帮助您解答～'
   }
