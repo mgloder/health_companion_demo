@@ -130,6 +130,7 @@ const USER_PREFER_DOCTOR = {
         },
       },
       required: ["city"],
+      additionalProperties: true,
     },
   },
 };
