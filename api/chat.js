@@ -78,6 +78,11 @@ async function handleToolCalls(message, chatManager) {
       type = "recommend_doctor";
     }
 
+    if (name === "user_confirm_doctor") {
+      toolMessage = await chatManager.handleConfirmDoctor(toolCallId, args);
+      type = "text";
+    }
+
 
   }
   return { type, toolMessage, data };
@@ -136,9 +141,39 @@ async function handleDoctorRecommendation(session, message, chatManager) {
     type = ret.type;
   }
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
-  data = JSON.parse(chatMessage);
+  if (type !== 'text') {
+    data = JSON.parse(chatMessage);
+  }
   session.recommendDoctorHistory.push({ role: "assistant", content: chatMessage });
-  console.log(session.recommendDoctorHistory);
+  return { message: chatMessage, type, data };
+}
+
+async function handleDoctorQA(session, message, chatManager) {
+  if (!session.doctorQAHistory) {
+    session.doctorQAHistory = [
+      {
+        role: "developer",
+        content: `You are a helpful health assistant. Reference: insurance_info: ${session.insuranceInfo} disease:${session.possibleDiseases} prefer_doctors: ${JSON.stringify(session.preferDoctors)} all_doctors: ${JSON.stringify(doctors)}`,
+      },
+    ];
+  }
+  session.doctorQAHistory.push({ role: "user", content: message });
+  const response = await createChatCompletion({
+    messages: session.doctorQAHistory,
+  });
+
+  let toolMessage;
+  let type = "text";
+  let data = null;
+
+  if (response?.choices[0].message.tool_calls) {
+    console.log("Tool calls:", response.choices[0].message.tool_calls);
+    const ret = await handleToolCalls(response.choices[0].message, chatManager);
+    toolMessage = ret.toolMessage;
+    type = ret.type;
+  }
+  const chatMessage = response?.choices[0].message.content || toolMessage || "";
+  session.doctorQAHistory.push({ role: "assistant", content: chatMessage });
   return { message: chatMessage, type, data };
 }
 
@@ -162,6 +197,10 @@ export async function handler(request) {
 
   if (session.currentStep === STEPS.DOCTOR_RECOMMENDATION) {
     return await handleDoctorRecommendation(session, message, chatManager);
+  }
+
+  if (session.currentStep === STEPS.USER_CONFIRMED_DOCTOR_RECOMMENDATION) {
+    return await handleDoctorQA(session, message, chatManager);
   }
 
   session.chatHistory.push({ role: "user", content: message });

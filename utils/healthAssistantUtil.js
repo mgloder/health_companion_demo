@@ -65,7 +65,39 @@ const USER_NEED_MORE_DETAIL = {
   type: "function",
   function: {
     name: "user_need_more_detail",
-    description: "用户想要了解更多信息",
+    description: "用户想要了解更多保险赔付的详细信息",
+    parameters: {
+      type: "object",
+      properties: {
+        insuranceInfo: {
+          type: "array",
+          description: "用户关注的保险赔付详情",
+          items: {
+            type: "object",
+            properties: {
+              disease: {
+                type: "string",
+                description: "疾病名称",
+              },
+              covered: {
+                type: "boolean",
+                description: "保险是否覆盖该疾病",
+              },
+              coverage_ratio: {
+                type: "string",
+                description: "赔付比例，当未覆盖时为 0%",
+              },
+              coverage_times: {
+                type: "integer",
+                description: "该疾病的赔付次数限制，当未覆盖时为 0%",
+              },
+            },
+            required: ["disease", "covered"],
+          },
+        },
+      },
+      required: ["details"],
+    },
   },
 };
 
@@ -102,6 +134,49 @@ const USER_PREFER_DOCTOR = {
   },
 };
 
+const USER_CONFIRM_DOCTOR = {
+  type: "function",
+  function: {
+    name: "user_confirm_doctor",
+    description: "用户确认推荐的医生符合要求",
+    parameters: {
+      type: "object",
+      properties: {
+        doctors: {
+          type: "array",
+          description: "用户确认的医生列表",
+          items: {
+            type: "object",
+            properties: {
+              doctor_name: {
+                type: "string",
+                description: "医生的姓名",
+              },
+              specialty: {
+                type: "string",
+                description: "医生的专科",
+              },
+              experience: {
+                type: "string",
+                description: "医生的经验（如‘10年经验’）",
+              },
+              hospital: {
+                type: "string",
+                description: "医生所在的医院或诊所",
+              },
+              city: {
+                type: "string",
+                description: "医生所在的城市",
+              }
+            },
+            required: ["doctor_name", "specialty", "hospital", "city"],
+          },
+        },
+      },
+      required: ["doctors"],
+    },
+  },
+};
 
 const CONFIRM_RESPONSE_FORMAT =  z.object({
   diseases: z.array(z.string()),
@@ -132,7 +207,8 @@ export const TOOLS = {
   USER_REJECT_UPLOAD,
   USER_NEED_MORE_DETAIL,
   USER_NEED_RECOMMEND_DOCTOR,
-  USER_PREFER_DOCTOR
+  USER_PREFER_DOCTOR,
+  USER_CONFIRM_DOCTOR
 }
 
 export const RESPONSE_FORMAT = {

@@ -307,7 +307,8 @@ function renderConfirmDoctor(content, onAction) {
   );
 }
 
-function renderRecommendDoctor(data) {
+function renderRecommendDoctor(data, onAction) {
+  const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
       <p className="text-[15px] mb-1">这边帮您推荐了一下医生：</p>
@@ -325,6 +326,20 @@ function renderRecommendDoctor(data) {
         </ul>
       }
       <p className="mt-2 text-[15px]">{data.recommendation}</p>
+      <div className="mt-2 float-right">
+        {
+          <>
+            <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-24 leading-8 text-sis-blue"
+                    onClick={() => {
+                      setIsConfirmed(true);
+                      !isConfirmed && onAction("我确认推荐的医生符合我的要求");
+                    }}>
+              {isConfirmed && <CheckCircle className="inline-block text-sis-blue mr-1" size={17} />}
+              确认
+            </button>
+          </>
+        }
+      </div>
     </div>
   );
 }

@@ -13,7 +13,7 @@ export const STEPS = {
   GENERATE_INSURANCE_COVERAGE: 4,
   DOCUMENT_Q_AND_A: 5,
   DOCTOR_RECOMMENDATION: 6,
-  USER_CONFIRM_RECOMMENDATION: 7,
+  USER_CONFIRMED_DOCTOR_RECOMMENDATION: 7,
 };
 
 
@@ -91,6 +91,7 @@ export class ChatManager {
 
   async handleNeedMoreDetail(toolCallId, args) {
     this.session.currentStep = STEPS.DOCUMENT_Q_AND_A;
+    this.session.insuranceInfo = args?.insuranceInfo;
     this.addToolChatMessage(toolCallId, '回复 "好的，我明白了！您有什么关于医疗保险相关的问题都可以问我哦～。我会根据您的症状，看看保险是否覆盖相关的疾病"');
 
     const response = await createChatCompletion({
@@ -115,7 +116,7 @@ export class ChatManager {
         filteredDoctor = doctors;
       }
     }
-    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。 以纯文本的方式回复`);
+    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases} 和症状 ${this.session.symptoms}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。 以纯文本的方式回复`);
 
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
@@ -126,6 +127,13 @@ export class ChatManager {
     this.addRecommendMessage(response.choices[0].message);
     console.log(this.session.recommendDoctorHistory);
     return response.choices[0].message.content;
+  }
+
+  async handleConfirmDoctor(toolCallId, args) {
+    this.session.currentStep = STEPS.USER_CONFIRMED_DOCTOR_RECOMMENDATION;
+    this.session.preferDoctors = args?.doctors;
+
+    return '好的，关于医生的选择，您还有其他问题吗？我很乐意帮助您解答～'
   }
 
   addChatMessage(message) {
@@ -193,6 +201,11 @@ export class ChatManager {
 
     if (this.getCurrentStep() === STEPS.DOCTOR_RECOMMENDATION) {
       tools.push(TOOLS.USER_PREFER_DOCTOR);
+      tools.push(TOOLS.USER_CONFIRM_DOCTOR);
+    }
+
+    if (this.getCurrentStep() === STEPS.USER_CONFIRMED_DOCTOR_RECOMMENDATION) {
+      // TODO: recommend insurance
     }
 
     return tools;
