@@ -45,9 +45,9 @@ const schema = {
 };
 
 // Register env plugin first
-await server.register(fastifyEnv, { 
-  dotenv: true, 
-  schema 
+await server.register(fastifyEnv, {
+  dotenv: true,
+  schema
 });
 
 // Initialize OpenAI client
@@ -96,9 +96,9 @@ await server.register(fastifyMultipart, {
     fieldSize: 100,
     fields: 10,
     fileSize: 100 * 1024 * 1024, // 100MB
-    files: 10,
-    headerPairs: 2000
-  }
+    files: 1, // only allow one file upload
+    headerPairs: 2000,
+  },
 });
 
 logger.debug("All plugins registered");
@@ -107,11 +107,13 @@ logger.debug("All plugins registered");
 import { registerUploadRoutes } from './api/upload.js';
 import { registerSearchRoutes } from './api/search.js';
 import { registerEmbeddingsRoutes } from './api/embeddings.js';
+import { registerTranscribeRoutes } from './api/transcribe.js';
 
 registerUploadRoutes(server);
 registerSearchRoutes(server);
 registerEmbeddingsRoutes(server);
 registerChatRoutes(server);
+registerTranscribeRoutes(server, logger)
 
 // Load existing data when server starts
 try {
