@@ -162,9 +162,9 @@ function renderConfirmItem(data, onAction) {
   const [isClicked, setIsClicked] = useState(false);
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
-    <div className="">
-      <p className="text-[15px]">可能有以下疾病</p>
-      <b className="mt-1 ml-2 text-sm text-sis-purple">{data.disease}</b>
+    <div>
+      <p className="text-sm mb-2">{data.sympathy_message}</p>
+      <b className="text-base text-sis-purple">{data.disease}</b>
       {
         <ul className="text-sis-purple ml-2 mt-1 text-sm leading-[18px] list-disc list-inside">
           <li>{data.description}</li>
@@ -249,7 +249,7 @@ function renderConfirmUploadItem(content, onAction) {
 function renderConfirmInsurance(data, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
-    <div className="">
+    <div>
       <p className="text-[15px]">这是我根据医疗保单查找的信息</p>
       {
         <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">

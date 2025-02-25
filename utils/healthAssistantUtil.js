@@ -167,6 +167,7 @@ const USER_CONFIRM_DOCTOR = {
 };
 
 const CONFIRM_RESPONSE_FORMAT = z.object({
+  sympathy_message: z.string().describe('表达对用户病情的关心、理解和温暖的慰问，并以“可能患有以下疾病：”为结尾'),
   disease: z.string().describe('疾病名称'),
   description: z.string().describe('疾病的简要介绍'),
   reference_link: z.string().describe('参考链接，例如 WebMD 的相关页面'),
@@ -176,7 +177,7 @@ const CONFIRM_RESPONSE_FORMAT = z.object({
 const INSURANCE_COVERAGE_RESPONSE = z.object({
   summaries: z.array(z.object({
     disease: z.string().describe('疾病'),
-    summary: z.string().describe('一句话总结疾病是否在保险中覆盖，赔率是多少'),
+    summary: z.string().describe('总结疾病是否在保险中覆盖，赔率是多少，有什么条件限制，不超过50个字'),
   })),
 });
 
