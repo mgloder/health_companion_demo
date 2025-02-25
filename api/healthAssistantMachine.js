@@ -99,6 +99,8 @@ export class ChatManager {
       messages: this.getChatHistory(),
     });
 
+    // TODO: check response, if response contains "Target Information, e.g. coverage, location ,etc", then return with promotion message
+
     this.addChatMessage(response.choices[0].message);
     return response.choices[0].message.content;
   }
