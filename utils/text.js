@@ -4,15 +4,15 @@ const logger = pino({
   level: process.env.LOG_LEVEL || 'info'
 });
 
-export function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 20000 chars
+export function chunkText(text, maxTokens = 4000) {  // Using 5000 tokens ~ 20000 chars
   const chunks = [];
-  
+
   // Approximate page size (2000 chars)
   const pageSize = maxTokens * 0.75 * 4;  // tokens * buffer * chars per token
-  
+
   // Split text into paragraphs
   const paragraphs = text.split(/\n\s*\n/);
-  
+
   for (const paragraph of paragraphs) {
     // If paragraph is smaller than page size, treat normally
     if (paragraph.length <= pageSize) {
@@ -24,7 +24,7 @@ export function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 2000
     } else {
       // For large paragraphs, split into sentences
       const sentences = paragraph.match(/[^.!?]+[.!?]+/g) || [paragraph];
-      
+
       for (const sentence of sentences) {
         // If sentence is smaller than page size, treat normally
         if (sentence.length <= pageSize) {
@@ -37,7 +37,7 @@ export function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 2000
           // For large sentences, split into words
           const words = sentence.split(/\s+/);
           let currentChunk = '';
-          
+
           for (const word of words) {
             if (currentChunk.length + word.length + 1 > pageSize) {
               if (currentChunk) {
@@ -48,7 +48,7 @@ export function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 2000
               currentChunk += (currentChunk ? ' ' : '') + word;
             }
           }
-          
+
           if (currentChunk) {
             if (chunks.length === 0 || (chunks[chunks.length - 1].length + currentChunk.length > pageSize)) {
               chunks.push(currentChunk.trim());
@@ -71,4 +71,4 @@ export function chunkText(text, maxTokens = 5000) {  // Using 5000 tokens ~ 2000
   });
 
   return chunks;
-} 
+}
