@@ -164,11 +164,11 @@ function renderConfirmItem(data, onAction) {
   return (
     <div className="">
       <p className="text-[15px]">可能有以下疾病</p>
+      <b className="mt-1 ml-2 text-sm text-sis-purple">{data.disease}</b>
       {
         <ul className="text-sis-purple ml-2 mt-1 text-sm leading-[18px] list-disc list-inside">
-          {data.diseases.map((item, index) => {
-            return (<li key={index}>{item}</li>);
-          })}
+          <li>{data.description}</li>
+          <li>参考链接：<a href={data.reference_link}>WebMD</a></li>
         </ul>
       }
       <p className="mt-2 text-[15px]">{data.recommendation}</p>

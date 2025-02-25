@@ -23,15 +23,12 @@ const USER_CONFIRM_DIAGNOSIS = {
     parameters: {
       type: "object",
       properties: {
-        possible_diseases: {
-          type: "array",
-          items: {
-            type: "string",
-            description: "可能的疾病",
-          },
+        possible_disease: {
+          type: "string",
+          description: "可能的疾病",
         },
       },
-      required: ["possible_diseases"],
+      required: ["possible_disease"],
     },
     description: "用户确认病情与 AI 描述一致",
   },
@@ -169,9 +166,11 @@ const USER_CONFIRM_DOCTOR = {
   },
 };
 
-const CONFIRM_RESPONSE_FORMAT =  z.object({
-  diseases: z.array(z.string()),
-  recommendation: z.string(),
+const CONFIRM_RESPONSE_FORMAT = z.object({
+  disease: z.string().describe('疾病名称'),
+  description: z.string().describe('疾病的简要介绍'),
+  reference_link: z.string().describe('参考链接，例如 WebMD 的相关页面'),
+  recommendation: z.string().describe('针对该疾病的推荐信息'),
 });
 
 const INSURANCE_COVERAGE_RESPONSE = z.object({

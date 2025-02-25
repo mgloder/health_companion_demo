@@ -99,7 +99,7 @@ async function handleInsuranceQA(session, message, chatManager) {
       },
     ];
   }
-  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDiseases} and confirmed insurance info ${session.insuranceInfo}, Question: ${message}; Reference: ${content}` });
+  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDisease} and confirmed insurance info ${session.insuranceInfo}, Question: ${message}; Reference: ${content}` });
   const response = await createChatCompletion({
     messages: session.insuranceQAHistory,
     tools: chatManager.getTools(),
@@ -162,7 +162,7 @@ async function handleDoctorQA(session, message, chatManager) {
     session.doctorQAHistory = [
       {
         role: "developer",
-        content: `You are a helpful health assistant. Reference: insurance_info: ${session.insuranceInfo} disease:${session.possibleDiseases} prefer_doctor: ${JSON.stringify(session.preferDoctor)} all_doctors: ${JSON.stringify(doctors)}`,
+        content: `You are a helpful health assistant. Reference: insurance_info: ${session.insuranceInfo} disease:${session.possibleDisease} prefer_doctor: ${JSON.stringify(session.preferDoctor)} all_doctors: ${JSON.stringify(doctors)}`,
       },
     ];
   }

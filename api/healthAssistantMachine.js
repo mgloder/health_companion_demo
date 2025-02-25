@@ -32,7 +32,7 @@ export class ChatManager {
       this.addToolChatMessage(toolCallId, `根据用户的症状去询问更细节的症状, 问题应该简洁`);
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
-      this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出最有可能的三种疾病 请以纯文本的方式回复`);
+      this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出最有可能的一种疾病`);
       response_format = zodResponseFormat(RESPONSE_FORMAT.CONFIRM_RESPONSE_FORMAT, 'confirm_response_format');
     }
     const response = await createChatCompletion({
@@ -46,7 +46,7 @@ export class ChatManager {
 
   async handleConfirmDiagnosis(toolCallId, args) {
     this.session.currentStep = STEPS.CONFIRMED_WITH_USER;
-    this.session.possibleDiseases = args.possible_diseases;
+    this.session.possibleDisease = args.possible_disease;
 
     this.addToolChatMessage(toolCallId, `回复 "好的，我明白了！为了方便我帮您查询，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
     const response = await createChatCompletion({
@@ -74,11 +74,11 @@ export class ChatManager {
 
   async handleUploadedInsuranceCoverage(toolCallId, args) {
     this.session.currentStep = STEPS.GENERATE_INSURANCE_COVERAGE;
-    const [ret] = await stringsRankedByRelatedness(`帮我找到与这些疾病有关的信息 ${this.session.possibleDiseases}`, 1);
+    const [ret] = await stringsRankedByRelatedness(`帮我找到与这些疾病有关的信息 ${this.session.possibleDisease}`, 1);
     const { content } = ret;
     const messages = [{
       role: "user",
-      content: `Question: 对于每个疾病一句话总结是否在疾病中覆盖 疾病: ${this.session.possibleDiseases}; Reference: ${content}`,
+      content: `Question: 对于每个疾病一句话总结是否在疾病中覆盖 疾病: ${this.session.possibleDisease}; Reference: ${content}`,
     }];
 
     const response = await createChatCompletion({
@@ -118,7 +118,7 @@ export class ChatManager {
         filteredDoctor = doctors;
       }
     }
-    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDiseases} 和症状 ${this.session.symptoms}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。以用户的语言作为回复`);
+    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDisease} 和症状 ${this.session.symptoms}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。以用户的语言作为回复`);
 
     const response = await createChatCompletion({
       model: "gpt-4o-mini",
