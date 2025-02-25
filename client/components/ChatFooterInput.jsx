@@ -33,10 +33,10 @@ export default function ChatFooterInput({ onSendMessage }) {
       };
 
       mediaRecorder.current.onstop = async () => {
-        const audioBlob = new Blob(audioChunks.current, { type: "audio/webm" });
+        const audioBlob = new Blob(audioChunks.current, { type: "audio/wav" });
         await transcribeAudio(audioBlob);
       };
-      mediaRecorder.current.start();
+      mediaRecorder.current.start(1000);
       setIsRecording(true);
     } catch (error) {
       console.error("Error starting recording:", error);
@@ -56,7 +56,7 @@ export default function ChatFooterInput({ onSendMessage }) {
     setIsProcessing(true);
     try {
       const formData = new FormData();
-      formData.append("audio", audioBlob, 'audio.webm');
+      formData.append("audio", audioBlob, 'audio.wav');
 
       const response = await fetch("/api/transcribe", {
         method: "POST",
