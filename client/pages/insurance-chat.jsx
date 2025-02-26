@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ChevronLeftIcon from "../components/ChevronLeftIcon.jsx";
-import marryProfile from "../assets/marry-profile.svg";
+import marryProfile from "../assets/avatar/michael.svg";
 import ChatMessage from "../components/ChatMessage.jsx";
 import ChatFooterInput from "../components/ChatFooterInput.jsx";
 
@@ -26,7 +26,7 @@ function Header({ onProfileClick }) {
         className="ml-2 w-8 h-8 rounded-full cursor-pointer"
         onClick={onProfileClick}
       />
-      <h1 className="ml-3.5 text-xl font-medium">Insurance Advisor</h1>
+      <h1 className="ml-3.5 text-xl font-medium">AI 健康管家</h1>
     </div>
   );
 }

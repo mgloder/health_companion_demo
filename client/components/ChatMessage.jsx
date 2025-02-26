@@ -2,7 +2,7 @@ import { CheckCircle, XCircle } from "react-feather";
 
 import ToggleSwitch from "./ToggleSwitch.jsx";
 
-import marryProfile from "../assets/marry-profile.svg";
+import marryProfile from "../assets/avatar/michael.svg";
 import axa from "../assets/axa.png";
 import bluecross from "../assets/bluecross.png";
 import hongleong from "../assets/hongleong.png";
