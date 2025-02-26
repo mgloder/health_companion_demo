@@ -139,7 +139,7 @@ export default function Index() {
           />
           <RecommendItem
             icon={shopBagIcon}
-            text={"See latest offers for tax-deductible insurance"}
+            text={"Chat with AI health expert"}
             onClick={() => navigate('/insurance-chat')}
             style={{ cursor: 'pointer' }}
           />
