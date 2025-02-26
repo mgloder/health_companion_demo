@@ -1,8 +1,8 @@
-import { createChatCompletion, stringsRankedByRelatedness } from "../utils/openai.js";
-import { ChatManager, STEPS } from "./healthAssistantMachine.js";
-import doctors from "../data/dummy_medical_data.json" with { type: "json" };
+import { createChatCompletion, insuranceRankedByRelatedness } from "../utils/openai.js";
+import { ChatManager, checkDoctorsInCoverage, STEPS } from "./healthAssistantMachine.js";
 import { zodResponseFormat } from "openai/helpers/zod";
 import { RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
+import doctors from "../data/dummy_medical_data.json" with { type: "json" };
 
 export function registerChatRoutes(server) {
   server.post("/api/chat", async (request, reply) => {
@@ -78,18 +78,12 @@ async function handleToolCalls(message, chatManager) {
       type = "recommend_doctor";
     }
 
-    if (name === "user_confirm_doctor") {
-      toolMessage = await chatManager.handleConfirmDoctor(toolCallId, args);
-      type = "text";
-    }
-
-
   }
   return { type, toolMessage, data };
 }
 
 async function handleInsuranceQA(session, message, chatManager) {
-  const ret = await stringsRankedByRelatedness(message, 1);
+  const ret = await insuranceRankedByRelatedness(message, 1);
   const { content } = ret[0];
   if (!session.insuranceQAHistory) {
     session.insuranceQAHistory = [
@@ -99,7 +93,7 @@ async function handleInsuranceQA(session, message, chatManager) {
       },
     ];
   }
-  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDisease} and confirmed insurance info ${session.insuranceInfo}, Question: ${message}; Reference: ${content}` });
+  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDisease} and confirmed insurance info ${JSON.stringify(session.insuranceInfo)}, Question: ${message}; Reference: ${content}` });
   const response = await createChatCompletion({
     messages: session.insuranceQAHistory,
     tools: chatManager.getTools(),
@@ -152,6 +146,9 @@ async function handleDoctorRecommendation(session, message, chatManager) {
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
   if (type !== 'text') {
     data = JSON.parse(chatMessage);
+    // go to doctor_q_and_a step
+    session.currentStep = STEPS.DOCTOR_Q_AND_A;
+    session.recommendDoctors = data.doctors;
   }
   session.recommendDoctorHistory.push({ role: "assistant", content: chatMessage });
   return { message: chatMessage, type, data };
@@ -159,20 +156,22 @@ async function handleDoctorRecommendation(session, message, chatManager) {
 
 async function handleDoctorQA(session, message, chatManager) {
   if (!session.doctorQAHistory) {
+    session.doctorCoverage = await checkDoctorsInCoverage(session.recommendDoctors);
     session.doctorQAHistory = [
       {
         role: "developer",
-        content: `You are a helpful health assistant. Reference: insurance_info: ${session.insuranceInfo} disease:${session.possibleDisease} prefer_doctor: ${JSON.stringify(session.preferDoctor)} all_doctors: ${JSON.stringify(doctors)}`,
+        content: `You are a helpful health assistant. Reference: insurance_info: ${JSON.stringify(session.insuranceInfo)} doctor_insurance_coverage: ${JSON.stringify(session.doctorCoverage)} disease:${session.possibleDisease} recommend_doctors: ${JSON.stringify(session.recommendDoctors)}`,
       },
     ];
   }
   session.doctorQAHistory.push({ role: "user", content: message });
   const response = await createChatCompletion({
     messages: session.doctorQAHistory,
+    response_format: zodResponseFormat(RESPONSE_FORMAT.DOCTOR_Q_AND_A, 'doctor_q_and_a')
   });
 
   let toolMessage;
-  let type = "text";
+  let type = "recommend_insurance";
   let data = null;
 
   if (response?.choices[0].message.tool_calls) {
@@ -182,8 +181,24 @@ async function handleDoctorQA(session, message, chatManager) {
     type = ret.type;
   }
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
+
+  const ret = JSON.parse(chatMessage);
+  const answer = ret.answer;
+
+  // if mentioned doctor not in insurance network provider
+  const recommendDoctor = session.doctorCoverage.find(({ doctor }) => doctor === ret.doctor_name);
+  console.log("doctor:", ret.doctor_name);
+  console.log("recommendDoctor:", recommendDoctor);
+  console.log("doctorCoverage:", session.doctorCoverage);
+  if (recommendDoctor && !recommendDoctor.coverage) {
+    data = {
+      doctor_name: ret.doctor_name,
+      coverage: recommendDoctor.coverage,
+    }
+  }
+
   session.doctorQAHistory.push({ role: "assistant", content: chatMessage });
-  return { message: chatMessage, type, data };
+  return { message: answer, type, data };
 }
 
 export async function handler(request) {
@@ -208,7 +223,7 @@ export async function handler(request) {
     return await handleDoctorRecommendation(session, message, chatManager);
   }
 
-  if (session.currentStep === STEPS.USER_CONFIRMED_DOCTOR_RECOMMENDATION) {
+  if (session.currentStep === STEPS.DOCTOR_Q_AND_A) {
     return await handleDoctorQA(session, message, chatManager);
   }
 

@@ -351,6 +351,43 @@ function renderRecommendDoctor(data, onAction) {
   );
 }
 
+function renderRecommendInsurance(data, onAction) {
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  if (!data) {
+    return;
+  }
+
+  return (
+    <div className={`flex justify-start mb-4`}>
+        <img
+          src={marryProfile}
+          alt="Advisor"
+          className="w-8 h-8 rounded-full mr-2 self-end"
+        />
+      )
+      <div
+        className={`max-w-[75%] rounded-2xl p-3 bg-[#F0F1F9] shadow-md rounded-bl-none`}
+      >
+        {`这位 ${data.doctor_name} 目前不在您的保险网络内。为了更好地保障您的就医选择，我可以为您介绍一些覆盖更广的保险方案，这样您未来就诊时会有更多选择。`}
+        <div className="mt-2 float-right">
+          {
+            <>
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-24 leading-8 text-sis-blue"
+                      onClick={() => {
+                        setIsConfirmed(true);
+                        !isConfirmed && onAction("我想要推荐保险");
+                      }}>
+                {isConfirmed && <CheckCircle className="inline-block text-sis-blue mr-1" size={17} />}
+                推荐保险
+              </button>
+            </>
+          }
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatMessage({ isUser, content, timestamp, type = "text", pdfUrl, data, onAction }) {
   if (type === "hidden") {
     return <></>;
@@ -419,6 +456,7 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
         </div>
       </div>
       {type === "form" && renderFormItem(data)}
+      {type === "recommend_insurance" && renderRecommendInsurance(data, onAction)}
     </>
   );
 }

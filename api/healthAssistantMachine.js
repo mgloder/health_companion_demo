@@ -1,6 +1,6 @@
 import { zodResponseFormat } from "openai/helpers/zod";
 
-import { createChatCompletion, stringsRankedByRelatedness } from "../utils/openai.js";
+import { createChatCompletion, doctorRankedByRelatedness, insuranceRankedByRelatedness } from "../utils/openai.js";
 import { TOOLS, RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
 import doctors from "../data/dummy_medical_data.json" with { type: "json" };
 
@@ -13,7 +13,7 @@ export const STEPS = {
   GENERATE_INSURANCE_COVERAGE: 4,
   DOCUMENT_Q_AND_A: 5,
   DOCTOR_RECOMMENDATION: 6,
-  USER_CONFIRMED_DOCTOR_RECOMMENDATION: 7,
+  DOCTOR_Q_AND_A: 7,
 };
 
 
@@ -33,10 +33,9 @@ export class ChatManager {
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
       this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出最有可能的一种疾病`);
-      response_format = zodResponseFormat(RESPONSE_FORMAT.CONFIRM_RESPONSE_FORMAT, 'confirm_response_format');
+      response_format = zodResponseFormat(RESPONSE_FORMAT.CONFIRM_RESPONSE_FORMAT, "confirm_response_format");
     }
     const response = await createChatCompletion({
-      model: "gpt-4o-mini",
       messages: this.getChatHistory(),
       response_format,
     });
@@ -74,7 +73,7 @@ export class ChatManager {
 
   async handleUploadedInsuranceCoverage(toolCallId, args) {
     this.session.currentStep = STEPS.GENERATE_INSURANCE_COVERAGE;
-    const [ret] = await stringsRankedByRelatedness(`收集有关保险信息，同时帮我找到与这些疾病有关的信息 ${this.session.possibleDisease}`, 1);
+    const [ret] = await insuranceRankedByRelatedness(`收集有关保险信息，同时帮我找到与这些疾病有关的信息 ${this.session.possibleDisease}`, 1);
     const { content } = ret;
     const messages = [{
       role: "user",
@@ -83,7 +82,7 @@ export class ChatManager {
 
     const response = await createChatCompletion({
       messages: messages,
-      response_format: zodResponseFormat(RESPONSE_FORMAT.INSURANCE_COVERAGE_RESPONSE, 'insurance_coverage_response'),
+      response_format: zodResponseFormat(RESPONSE_FORMAT.INSURANCE_COVERAGE_RESPONSE, "insurance_coverage_response"),
     });
 
     return response.choices[0].message.content;
@@ -95,7 +94,6 @@ export class ChatManager {
     this.addToolChatMessage(toolCallId, '回复 "好的，我明白了！您有什么关于医疗保险相关的问题都可以问我哦～。我会根据您的症状，看看保险是否覆盖相关的疾病"');
 
     const response = await createChatCompletion({
-      model: "gpt-4o-mini",
       messages: this.getChatHistory(),
     });
 
@@ -118,24 +116,16 @@ export class ChatManager {
         filteredDoctor = doctors;
       }
     }
-    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDisease} 和症状 ${this.session.symptoms}, 偏好 ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按 reviews 评分排名查找出最合适的三个医生。以用户的语言作为回复`);
+    this.addToolRecommendMessage(toolCallId, `根据用户的提供的疾病:${this.session.possibleDisease} 和症状: ${JSON.stringify(this.session.symptoms)}, 地址:${args.city} 偏好: ${JSON.stringify(args)}. 推荐从以下: ${JSON.stringify(filteredDoctor)} 按地理位置 和 reviews 评分排名查找出最合适的三个医生。以用户的语言作为回复`);
 
     const response = await createChatCompletion({
-      model: "gpt-4o-mini",
       messages: this.session.recommendDoctorHistory,
-      response_format: zodResponseFormat(RESPONSE_FORMAT.RECOMMEND_DOCTOR, 'recommend_doctor')
+      response_format: zodResponseFormat(RESPONSE_FORMAT.RECOMMEND_DOCTOR, "recommend_doctor"),
     });
 
     this.addRecommendMessage(response.choices[0].message);
     console.log(this.session.recommendDoctorHistory);
     return response.choices[0].message.content;
-  }
-
-  async handleConfirmDoctor(toolCallId, args) {
-    this.session.currentStep = STEPS.USER_CONFIRMED_DOCTOR_RECOMMENDATION;
-    this.session.preferDoctor = args;
-
-    return '好的，关于医生的选择，您还有其他问题吗？我很乐意帮助您解答～'
   }
 
   addChatMessage(message) {
@@ -156,6 +146,18 @@ export class ChatManager {
 
   addToolRecommendMessage(toolCallId, content) {
     this.session.recommendDoctorHistory.push({
+      role: "tool",
+      tool_call_id: toolCallId,
+      content,
+    });
+  }
+
+  addDoctorQAMessage(message) {
+    this.session.doctorQAHistory.push(message);
+  }
+
+  addToolDoctorQAMessage(toolCallId, content) {
+    this.session.doctorQAHistory.push({
       role: "tool",
       tool_call_id: toolCallId,
       content,
@@ -203,13 +205,29 @@ export class ChatManager {
 
     if (this.getCurrentStep() === STEPS.DOCTOR_RECOMMENDATION) {
       tools.push(TOOLS.USER_PREFER_DOCTOR);
-      tools.push(TOOLS.USER_CONFIRM_DOCTOR);
     }
 
-    if (this.getCurrentStep() === STEPS.USER_CONFIRMED_DOCTOR_RECOMMENDATION) {
+    if (this.getCurrentStep() === STEPS.DOCTOR_Q_AND_A) {
       // TODO: recommend insurance
     }
 
     return tools;
   }
 }
+
+
+export const checkDoctorsInCoverage = async (doctors) => {
+  const responses = await Promise.all(doctors.map(async ({ doctor, specialty }) => {
+    const rets = await doctorRankedByRelatedness(`find ${doctor} in ${specialty}`, 3);
+    const reference = rets.map(ret => ret.content).join('\n');
+    const response = await createChatCompletion({
+      messages: [{
+        role: "user",
+        content: `Question: Could you confirm if the doctor ${doctor} is mentioned in the following reference?; Reference: ${reference}`
+      }],
+      response_format: zodResponseFormat(RESPONSE_FORMAT.DOCTOR_COVERAGE, 'doctor_coverage')
+    });
+    return JSON.parse(response.choices[0].message.content);
+  }));
+  return responses.map(({ doctor, coverage }) => ({ doctor, coverage: coverage === 'Y'}));
+};

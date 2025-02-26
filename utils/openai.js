@@ -2,8 +2,10 @@ import pino from "pino";
 import OpenAI from 'openai';
 import { HttpsProxyAgent } from 'https-proxy-agent';
 import { cosineSimilarity } from "./math.js";
-import embeddingDoc from "../data/embeddings.json" with { type: "json" };
-import contentDoc from "../data/content.json" with { type: "json" };
+import insuranceEmbeddingDoc from "../data/embeddings.json" with { type: "json" };
+import insuranceContentDoc from "../data/content.json" with { type: "json" };
+import doctorEmbeddingDoc from "../data/doctor_embeddings.json" with { type: "json" };
+import doctorContentDoc from "../data/doctor_content.json" with { type: "json" };
 
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info'
@@ -91,17 +93,24 @@ export const openai = {
 };
 
 
+export async function insuranceRankedByRelatedness(query, topN = 10) {
+  return await stringsRankedByRelatedness(query, insuranceEmbeddingDoc[0], insuranceContentDoc[0], topN);
+}
 
+export async function doctorRankedByRelatedness(query, topN = 10) {
+  return await stringsRankedByRelatedness(query, doctorEmbeddingDoc[0], doctorContentDoc[0], topN);
+}
 
-export async function stringsRankedByRelatedness(query, topN = 10) {
+async function stringsRankedByRelatedness(query, embeddingDoc, contentDoc, topN = 10) {
   try {
     // 获取查询的 Embedding
     const queryEmbedding = await createEmbedding({ input: query });
 
     // 获取已上传文件的 Embeddings
-    const documentEmbeddings = embeddingDoc[0].chunks.map((doc, index) => ({
+    const documentEmbeddings = embeddingDoc.chunks.map((doc, index) => ({
+        index,
         embedding: doc.embedding,
-        content: contentDoc[0].chunks[index].content,
+        content: contentDoc.chunks[index].content,
       }));
 
     // 计算查询与每个文档的相似度

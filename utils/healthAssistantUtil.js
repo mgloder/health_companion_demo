@@ -132,39 +132,6 @@ const USER_PREFER_DOCTOR = {
   },
 };
 
-const USER_CONFIRM_DOCTOR = {
-  type: "function",
-  function: {
-    name: "user_confirm_doctor",
-    description: "用户确认要预约推荐的医生",
-    parameters: {
-      type: "object",
-      properties: {
-        doctor_name: {
-          type: "string",
-          description: "医生的姓名",
-        },
-        specialty: {
-          type: "string",
-          description: "医生的专科",
-        },
-        experience: {
-          type: "string",
-          description: "医生的经验（如‘10年经验’）",
-        },
-        hospital: {
-          type: "string",
-          description: "医生所在的医院或诊所",
-        },
-        address: {
-          type: "string",
-          description: "医生所在的地址",
-        }
-      },
-      required: ["doctor_name", "specialty", "hospital", "city"],
-    },
-  },
-};
 
 const CONFIRM_RESPONSE_FORMAT = z.object({
   sympathy_message: z.string().describe('表达对用户病情的关心、理解和温暖的慰问，并以“可能患有以下疾病：”为结尾'),
@@ -196,6 +163,17 @@ const RECOMMEND_DOCTOR = z.object({
   })),
 });
 
+const DOCTOR_COVERAGE = z.object({
+  doctor: z.string().describe('医生的姓名'),
+  coverage: z.string().describe('该医生是否在保险覆盖范围内，返回 Y 或者 N')
+});
+
+const DOCTOR_Q_AND_A = z.object({
+  answer: z.string(),
+  doctor_name: z.string()
+});
+
+
 export const TOOLS = {
   COLLECT_USER_SYMPTOMS,
   USER_CONFIRM_DIAGNOSIS,
@@ -205,11 +183,12 @@ export const TOOLS = {
   USER_NEED_MORE_DETAIL,
   USER_NEED_RECOMMEND_DOCTOR,
   USER_PREFER_DOCTOR,
-  USER_CONFIRM_DOCTOR
 }
 
 export const RESPONSE_FORMAT = {
   CONFIRM_RESPONSE_FORMAT,
   INSURANCE_COVERAGE_RESPONSE,
-  RECOMMEND_DOCTOR
+  RECOMMEND_DOCTOR,
+  DOCTOR_COVERAGE,
+  DOCTOR_Q_AND_A
 }
