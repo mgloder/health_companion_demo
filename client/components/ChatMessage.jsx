@@ -180,7 +180,7 @@ function renderConfirmItem(data, onAction) {
                 className="flex justify-center items-center gap-1 rounded-[1.25rem] bg-[#DCE5FE] text-sm w-20 leading-8 text-sis-blue">
                 {isConfirmed ? <CheckCircle className="text-sis-blue" size={17} /> :
                   <XCircle className="text-sis-blue" size={17} />}
-                {isConfirmed ? "已确认" : "已否认"}
+                {isConfirmed ? "明白" : "还有疑问 ?"}
               </div>
             </> :
             <>
@@ -189,14 +189,14 @@ function renderConfirmItem(data, onAction) {
                         setIsClicked(true);
                         setIsConfirmed(true);
                         onAction("我确认与前面所提到的病情一致");
-                      }}>确认
+                      }}>明白
               </button>
-              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] ml-1 text-sm w-20 leading-8 text-sis-blue"
                       onClick={() => {
                         setIsClicked(true);
                         setIsConfirmed(false);
                         onAction("我否认与前面所提到的病情一致");
-                      }}>否
+                      }}> 还有疑问 ?
               </button>
             </>
         }
@@ -231,7 +231,7 @@ function renderConfirmUploadItem(content, onAction) {
                         onAction("我已上传相关的医疗保险文档");
                       }}>上传
               </button>
-              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm ml-1 w-12 leading-8 text-sis-blue"
                       onClick={() => {
                         setIsClicked(true);
                         setIsConfirmed(false);
@@ -250,7 +250,7 @@ function renderConfirmInsurance(data, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div>
-      <p className="text-sm mb-2">{`您购买的保险来自 ${data.insurance_company}，合同编号为 ${data.insurance_contract_number}，保障期为 ${data.coverage_start_date} 至 ${data.coverage_end_date}。`}</p>
+      <p className="text-sm mb-2">{`您购买的保险来自 保柏（亚洲）有限公司，合同编号为 ${data.insurance_contract_number}，保障期为 ${data.coverage_start_date} 至 ${data.coverage_end_date}。`}</p>
       <p className="text-[15px] mb-2">这是我根据医疗保单查找的信息</p>
       {
         <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">
@@ -336,7 +336,7 @@ function renderRecommendDoctor(data, onAction) {
                     className="rounded-[1.25rem] self-end bg-[#DCE5FE] text-sm w-14 leading-6 text-sis-blue"
                     onClick={() => {
                       setSelectedDoctor(item.doctor);
-                      onAction(`我想要预约${item.doctor}`);
+                      // onAction(`我想要预约${item.doctor}`);
                     }}
                   >
                     预约
