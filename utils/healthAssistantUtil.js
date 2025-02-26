@@ -175,6 +175,10 @@ const CONFIRM_RESPONSE_FORMAT = z.object({
 });
 
 const INSURANCE_COVERAGE_RESPONSE = z.object({
+  insurance_company: z.string().describe('保险公司名称'),
+  insurance_contract_number: z.string().describe('保险编号'),
+  coverage_start_date: z.string().describe('保险计划的保障开始日期，格式为YYYY-MM-DD'),
+  coverage_end_date: z.string().describe('保险计划的保障结束日期，格式为YYYY-MM-DD'),
   summaries: z.array(z.object({
     disease: z.string().describe('疾病'),
     summary: z.string().describe('总结疾病是否在保险中覆盖，赔率是多少，有什么条件限制，不超过50个字'),

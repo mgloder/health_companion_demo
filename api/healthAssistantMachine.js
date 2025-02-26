@@ -74,7 +74,7 @@ export class ChatManager {
 
   async handleUploadedInsuranceCoverage(toolCallId, args) {
     this.session.currentStep = STEPS.GENERATE_INSURANCE_COVERAGE;
-    const [ret] = await stringsRankedByRelatedness(`帮我找到与这些疾病有关的信息 ${this.session.possibleDisease}`, 1);
+    const [ret] = await stringsRankedByRelatedness(`收集有关保险信息，同时帮我找到与这些疾病有关的信息 ${this.session.possibleDisease}`, 1);
     const { content } = ret;
     const messages = [{
       role: "user",

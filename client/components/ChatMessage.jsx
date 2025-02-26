@@ -250,7 +250,8 @@ function renderConfirmInsurance(data, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div>
-      <p className="text-[15px]">这是我根据医疗保单查找的信息</p>
+      <p className="text-sm mb-2">{`您购买的保险来自 ${data.insurance_company}，合同编号为 ${data.insurance_contract_number}，保障期为 ${data.coverage_start_date} 至 ${data.coverage_end_date}。`}</p>
+      <p className="text-[15px] mb-2">这是我根据医疗保单查找的信息</p>
       {
         <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">
           {data.summaries.map((item, index) => {
