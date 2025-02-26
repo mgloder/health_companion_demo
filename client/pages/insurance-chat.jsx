@@ -5,6 +5,15 @@ import marryProfile from "../assets/marry-profile.svg";
 import ChatMessage from "../components/ChatMessage.jsx";
 import ChatFooterInput from "../components/ChatFooterInput.jsx";
 
+const WELCOME_MESSAGE = {
+  id: 1,
+  isUser: false,
+  content: "您好！我是您的健康管家。如果您最近感到身体不适或有任何健康疑问，可以随时告诉我，我会尽力为您提供建议和支持。",
+  data: null,
+  type: 'text',
+  timestamp: new Date().toISOString()
+};
+
 function Header({ onProfileClick }) {
   return (
     <div className="flex items-center px-8 py-3 bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
@@ -23,13 +32,13 @@ function Header({ onProfileClick }) {
 }
 
 export default function InsuranceChat() {
-  const [chatLog, setChatLog] = useState([]);
+  const [chatLog, setChatLog] = useState([WELCOME_MESSAGE]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
 
   useEffect(() => {
     const storedChat = sessionStorage.getItem("insuranceChatLog");
     if (storedChat) {
-      setChatLog([...chatLog, ...JSON.parse(storedChat)]);
+      setChatLog([...JSON.parse(storedChat)]);
     }
   }, []);
 
