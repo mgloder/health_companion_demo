@@ -4,33 +4,35 @@ import ToggleSwitch from "./ToggleSwitch.jsx";
 
 import marryProfile from "../assets/avatar/michael.svg";
 import axa from "../assets/axa.png";
-import bluecross from "../assets/bluecross.png";
-import hongleong from "../assets/hongleong.png";
+import bupa from "../assets/bupa.png";
+import fwd from "../assets/fwd.png";
 import { useState } from "react";
 import UploadCard from "./UploadCard";
 
 
 const imgMap = {
   "安盛": axa,
-  "蓝十字": bluecross,
-  "Hong Leong 豐隆": hongleong,
+  "保柏": bupa,
+  "富卫": fwd,
 };
 
 const mockInsurance = [{
   insuranceCompany: "安盛",
   advantages: [
     "法國最大保險公司，電子理賠流程方便",
-    "12月有獨家75折優惠",
+    "拥有高效的理赔服务，专业团队确保客户及时获得赔付",
   ],
 }, {
-  insuranceCompany: "蓝十字",
-  advantages: ["A1A友邦集團全資附屬子公司",
-    "裝修後保養期12個月比市面上大部分只有3個月長"
+  insuranceCompany: "保柏",
+  advantages: [
+    "整合式医疗保健服务，全球覆盖与直付网络",
+    "高端医疗服务，投保限制宽松，续保稳定"
   ],
 }, {
-  insuranceCompany: "Hong Leong 豐隆",
-  advantages: ["性價比高",
-    "各項保障全面"
+  insuranceCompany: "富卫",
+  advantages: [
+    "覆盖广泛，提供全面的住院和门诊保障",
+    "灵活的保障计划，可根据个人需求定制。"
   ],
 }];
 
@@ -66,7 +68,7 @@ function renderRecommendationItem(data) {
               <div key={index} className="px-3 py-1 bg-[#3660F91A] backdrop-blur-md rounded-2xl w-[277px]">
                 <div className="flex justify-between items-end">
                   <div className="flex items-end gap-1">
-                    <img className="inline-block" src={imgMap[item.insuranceCompany]} sizes={26} />
+                    <img className="inline-block rounded-full mt-1" src={imgMap[item.insuranceCompany]} sizes={26} height={26} width={26} />
                     <span className="text-sm font-bold text-sis-purple">{item.insuranceCompany}</span>
                   </div>
                   {/*<div className="text-sis-purple">*/}
