@@ -14,6 +14,7 @@ export const STEPS = {
   DOCUMENT_Q_AND_A: 5,
   DOCTOR_RECOMMENDATION: 6,
   DOCTOR_Q_AND_A: 7,
+  INSURANCE_RECOMMENDATION: 8,
 };
 
 
@@ -128,6 +129,11 @@ export class ChatManager {
     return response.choices[0].message.content;
   }
 
+  handleNeedRecommendInsurance(toolCallId, args) {
+    this.session.currentStep = STEPS.INSURANCE_RECOMMENDATION;
+    return '为了更好地为您推荐合适的医生，请告诉我您的偏好，例如：医生的专业领域、性别、语言、就诊方式（线上或线下）等，我会根据您的需求为您匹配最合适的医生。'
+  }
+
   addChatMessage(message) {
     this.session.chatHistory.push(message);
   }
@@ -208,7 +214,7 @@ export class ChatManager {
     }
 
     if (this.getCurrentStep() === STEPS.DOCTOR_Q_AND_A) {
-      // TODO: recommend insurance
+      tools.push(TOOLS.USER_NEED_RECOMMEND_INSURANCE);
     }
 
     return tools;

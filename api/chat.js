@@ -78,6 +78,11 @@ async function handleToolCalls(message, chatManager) {
       type = "recommend_doctor";
     }
 
+    if (name === 'user_need_recommend_insurance') {
+      chatManager.handleNeedRecommendInsurance(message);
+      type = "need_recommend_insurance";
+    }
+
   }
   return { type, toolMessage, data };
 }
@@ -167,6 +172,8 @@ async function handleDoctorQA(session, message, chatManager) {
   session.doctorQAHistory.push({ role: "user", content: message });
   const response = await createChatCompletion({
     messages: session.doctorQAHistory,
+    tools: chatManager.getTools(),
+    tool_choice: 'auto',
     response_format: zodResponseFormat(RESPONSE_FORMAT.DOCTOR_Q_AND_A, 'doctor_q_and_a')
   });
 
@@ -179,6 +186,7 @@ async function handleDoctorQA(session, message, chatManager) {
     const ret = await handleToolCalls(response.choices[0].message, chatManager);
     toolMessage = ret.toolMessage;
     type = ret.type;
+    return { message: toolMessage, type, data };
   }
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
 
@@ -199,6 +207,11 @@ async function handleDoctorQA(session, message, chatManager) {
 
   session.doctorQAHistory.push({ role: "assistant", content: chatMessage });
   return { message: answer, type, data };
+}
+
+async function handleInsuranceRecommendation(session, message, chatManager) {
+  console.log("Insurance Recommendation:", message);
+  return { message: 'TODO', type: 'text' };
 }
 
 export async function handler(request) {
@@ -225,6 +238,10 @@ export async function handler(request) {
 
   if (session.currentStep === STEPS.DOCTOR_Q_AND_A) {
     return await handleDoctorQA(session, message, chatManager);
+  }
+
+  if (session.currentStep === STEPS.INSURANCE_RECOMMENDATION) {
+    return await handleInsuranceRecommendation(session, message, chatManager);
   }
 
   session.chatHistory.push({ role: "user", content: message });

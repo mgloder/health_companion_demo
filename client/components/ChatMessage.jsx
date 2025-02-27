@@ -16,6 +16,24 @@ const imgMap = {
   "Hong Leong 豐隆": hongleong,
 };
 
+const mockInsurance = [{
+  insuranceCompany: "安盛",
+  advantages: [
+    "法國最大保險公司，電子理賠流程方便",
+    "12月有獨家75折優惠",
+  ],
+}, {
+  insuranceCompany: "蓝十字",
+  advantages: ["A1A友邦集團全資附屬子公司",
+    "裝修後保養期12個月比市面上大部分只有3個月長"
+  ],
+}, {
+  insuranceCompany: "Hong Leong 豐隆",
+  advantages: ["性價比高",
+    "各項保障全面"
+  ],
+}];
+
 function renderPdfItem(pdfUrl, content) {
   return (
     <div
@@ -51,13 +69,13 @@ function renderRecommendationItem(data) {
                     <img className="inline-block" src={imgMap[item.insuranceCompany]} sizes={26} />
                     <span className="text-sm font-bold text-sis-purple">{item.insuranceCompany}</span>
                   </div>
-                  <div className="text-sis-purple">
-                    {item.insuranceDiscountPrice && (
-                      <s className="mr-1 opacity-45 text-[10px] leading-5">官铜：HK${item.insuranceDiscountPrice}</s>)
-                    }
-                    <span className="text-[10px] leading-5">HK$</span>
-                    <span className="text-sm">1500</span>
-                  </div>
+                  {/*<div className="text-sis-purple">*/}
+                  {/*  {item.insuranceDiscountPrice && (*/}
+                  {/*    <s className="mr-1 opacity-45 text-[10px] leading-5">官铜：HK${item.insuranceDiscountPrice}</s>)*/}
+                  {/*  }*/}
+                  {/*  <span className="text-[10px] leading-5">HK$</span>*/}
+                  {/*  <span className="text-sm">1500</span>*/}
+                  {/*</div>*/}
                 </div>
                 {
                   item.advantages && (
@@ -250,7 +268,8 @@ function renderConfirmInsurance(data, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div>
-      <p className="text-sm mb-2">{`您购买的保险来自 保柏（亚洲）有限公司，合同编号为 ${data.insurance_contract_number}，保障期为 ${data.coverage_start_date} 至 ${data.coverage_end_date}。`}</p>
+      <p
+        className="text-sm mb-2">{`您购买的保险来自 保柏（亚洲）有限公司，合同编号为 ${data.insurance_contract_number}，保障期为 ${data.coverage_start_date} 至 ${data.coverage_end_date}。`}</p>
       <p className="text-[15px] mb-2">这是我根据医疗保单查找的信息</p>
       {
         <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">
@@ -359,12 +378,11 @@ function renderRecommendInsurance(data, onAction) {
 
   return (
     <div className={`flex justify-start mb-4`}>
-        <img
-          src={marryProfile}
-          alt="Advisor"
-          className="w-8 h-8 rounded-full mr-2 self-end"
-        />
-      )
+      <img
+        src={marryProfile}
+        alt="Advisor"
+        className="w-8 h-8 rounded-full mr-2 self-end"
+      />
       <div
         className={`max-w-[75%] rounded-2xl p-3 bg-[#F0F1F9] shadow-md rounded-bl-none`}
       >
@@ -396,8 +414,8 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
     if (type === "pdf") {
       return renderPdfItem(pdfUrl, content);
     }
-    if (type === "recommendation") {
-      return renderRecommendationItem(data);
+    if (type === "need_recommend_insurance") {
+      return renderRecommendationItem(mockInsurance);
     }
     if (type === "form") {
       return (<div><p>OK!請麻烦填寫资料👇</p></div>);

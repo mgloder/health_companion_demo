@@ -132,6 +132,32 @@ const USER_PREFER_DOCTOR = {
   },
 };
 
+const USER_NEED_RECOMMEND_INSURANCE = {
+  type: "function",
+  function: {
+    name: "user_need_recommend_insurance",
+    description: "用户想要推荐保险",
+    parameters: {
+      type: "object",
+      properties: {
+        current_insurance: {
+          type: "string",
+          description: "用户当前的保险方案"
+        },
+        preferences: {
+          type: "array",
+          items: {
+            type: "string",
+            description: "用户对保险的偏好，如覆盖范围、保费等"
+          }
+        }
+      },
+      required: ["current_insurance"]
+    }
+  }
+};
+
+
 
 const CONFIRM_RESPONSE_FORMAT = z.object({
   sympathy_message: z.string().describe('表达对用户病情的关心、理解和温暖的慰问，并以“可能患有以下疾病：”为结尾'),
@@ -183,6 +209,7 @@ export const TOOLS = {
   USER_NEED_MORE_DETAIL,
   USER_NEED_RECOMMEND_DOCTOR,
   USER_PREFER_DOCTOR,
+  USER_NEED_RECOMMEND_INSURANCE,
 }
 
 export const RESPONSE_FORMAT = {
