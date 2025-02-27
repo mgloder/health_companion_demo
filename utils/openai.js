@@ -42,7 +42,7 @@ export function getOpenAI() {
 
 export async function createChatCompletion({
   messages,
-  model = "gpt-4o-mini",
+  model = "gpt-4o",
   temperature = 0.7,
   tools = null,
   tool_choice = null ,

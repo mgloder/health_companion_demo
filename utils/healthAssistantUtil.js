@@ -157,6 +157,15 @@ const USER_NEED_RECOMMEND_INSURANCE = {
   }
 };
 
+const USER_WANT_TO_PURCHASE_INSURANCE = {
+  type: "function",
+  function: {
+    name: "user_want_to_purchase_insurance",
+    description: "用户想要购买医疗保险",
+  }
+};
+
+
 
 
 const CONFIRM_RESPONSE_FORMAT = z.object({
@@ -210,6 +219,7 @@ export const TOOLS = {
   USER_NEED_RECOMMEND_DOCTOR,
   USER_PREFER_DOCTOR,
   USER_NEED_RECOMMEND_INSURANCE,
+  USER_WANT_TO_PURCHASE_INSURANCE,
 }
 
 export const RESPONSE_FORMAT = {

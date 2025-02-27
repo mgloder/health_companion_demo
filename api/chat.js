@@ -3,6 +3,7 @@ import { ChatManager, checkDoctorsInCoverage, STEPS } from "./healthAssistantMac
 import { zodResponseFormat } from "openai/helpers/zod";
 import { RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
 import doctors from "../data/dummy_medical_data.json" with { type: "json" };
+import { searchSimilar } from "../utils/cosmos.js";
 
 export function registerChatRoutes(server) {
   server.post("/api/chat", async (request, reply) => {
@@ -83,6 +84,11 @@ async function handleToolCalls(message, chatManager) {
       type = "need_recommend_insurance";
     }
 
+    if (name === 'user_want_to_purchase_insurance') {
+      toolMessage = chatManager.handleWantToPurchaseInsurance(toolCallId, args);
+      type = "purchase_insurance";
+    }
+
   }
   return { type, toolMessage, data };
 }
@@ -98,7 +104,7 @@ async function handleInsuranceQA(session, message, chatManager) {
       },
     ];
   }
-  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDisease} and confirmed insurance info ${JSON.stringify(session.insuranceInfo)}, Question: ${message}; Reference: ${content}` });
+  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDisease} and confirmed insurance info ${JSON.stringify(session.insuranceInfo)}, Question: ${message}; Reference: ${content}. Response with user language` });
   const response = await createChatCompletion({
     messages: session.insuranceQAHistory,
     tools: chatManager.getTools(),
@@ -210,8 +216,35 @@ async function handleDoctorQA(session, message, chatManager) {
 }
 
 async function handleInsuranceRecommendation(session, message, chatManager) {
-  console.log("Insurance Recommendation:", message);
-  return { message: 'TODO', type: 'text' };
+  if (!session.insuranceRecommendationHistory) {
+    session.insuranceRecommendationHistory = [
+      {
+        role: "developer",
+        content: `You are a professional insurance consultant. Context: insurance_info: ${JSON.stringify(session.insuranceInfo)} user_symptoms: ${JSON.stringify(session.symptoms)} disease:${session.possibleDisease}`,
+      },
+    ];
+  }
+  const references = await searchSimilar(message, 4);
+  const referencesText = references.map((reference) => reference.text).join(",");
+
+  session.insuranceRecommendationHistory.push({ role: "user", content: `Question: ${message} Reference: ${referencesText}, response with user language` });
+  const response = await createChatCompletion({
+    messages: session.insuranceRecommendationHistory,
+    tools: chatManager.getTools(),
+    tool_choice: 'auto',
+  });
+
+  if (response?.choices[0].message.tool_calls) {
+    console.log("Tool calls:", response.choices[0].message.tool_calls);
+    const ret = await handleToolCalls(response.choices[0].message, chatManager);
+    const toolMessage = ret.toolMessage;
+    const type = ret.type;
+    return { message: toolMessage, type };
+  }
+
+  const chatMessage = response?.choices[0].message.content;
+  session.insuranceRecommendationHistory.push({ role: "assistant", content: chatMessage });
+  return { message: chatMessage, type: 'text' };
 }
 
 export async function handler(request) {

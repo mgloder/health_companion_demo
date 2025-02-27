@@ -42,6 +42,7 @@ export default function InsuranceChat() {
   useEffect(() => {
     const lastChatLog = chatLog.at(-1);
     if (lastChatLog && lastChatLog.isUser) {
+      console.log(lastChatLog);
       try {
         fetch("/api/chat", {
           method: "POST",
@@ -87,13 +88,23 @@ export default function InsuranceChat() {
   };
 
   const handleMessageAction = (message) => {
-    const newMessage = {
+    let newMessage = {
       id: chatLog.length + 1,
       isUser: true,
       content: message,
       type: "hidden",
       timestamp: new Date().toISOString(),
     };
+    console.log(message);
+    if (message === 'purchase_online') {
+      newMessage = {
+        id: chatLog.length + 1,
+        isUser: false,
+        content: '',
+        type: "purchase_success",
+        timestamp: new Date().toISOString(),
+      }
+    }
     setChatLog([...chatLog, newMessage]);
     sessionStorage.setItem("insuranceChatLog", JSON.stringify([...chatLog, newMessage]));
   };

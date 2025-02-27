@@ -134,6 +134,12 @@ export class ChatManager {
     return '为了更好地为您推荐合适的医生，请告诉我您的偏好，例如：医生的专业领域、性别、语言、就诊方式（线上或线下）等，我会根据您的需求为您匹配最合适的医生。'
   }
 
+  handleWantToPurchaseInsurance(toolCallId, args) {
+    return '您好！为了更好地为您提供服务，想请问您更倾向于哪种购买方式呢？我们提供线上和线下两种选择：\n' +
+      '\n' +
+      '线上购买方便快捷，您可以随时随地进行咨询和办理，我们的专业顾问也会全程在线为您解答疑问；如果您更喜欢面对面交流，我们也可以为您安排线下服务，在您方便的时间和地点详细沟通。'
+  }
+
   addChatMessage(message) {
     this.session.chatHistory.push(message);
   }
@@ -215,6 +221,10 @@ export class ChatManager {
 
     if (this.getCurrentStep() === STEPS.DOCTOR_Q_AND_A) {
       tools.push(TOOLS.USER_NEED_RECOMMEND_INSURANCE);
+    }
+
+    if (this.getCurrentStep() === STEPS.INSURANCE_RECOMMENDATION) {
+      tools.push(TOOLS.USER_WANT_TO_PURCHASE_INSURANCE);
     }
 
     return tools;
