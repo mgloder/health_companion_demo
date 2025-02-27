@@ -12,7 +12,7 @@ const COLLECT_USER_SYMPTOMS = {
       },
       required: ["primary_symptoms"],
     },
-    description: "收集用户提供的症状及相关信息",
+    description: "收集用户提供的症状及相关信息，心理问题除外",
   },
 };
 
