@@ -224,10 +224,10 @@ async function handleInsuranceRecommendation(session, message, chatManager) {
       },
     ];
   }
-  const references = await searchSimilar(message, 4);
-  const referencesText = references.map((reference) => reference.text).join(",");
+  const references = await searchSimilar(message, 2);
+  const referencesText = references.map((reference) => `${reference.metadata?.filename}: ${reference.text}`).join("\n\n");
 
-  session.insuranceRecommendationHistory.push({ role: "user", content: `Question: ${message} Reference: ${referencesText}, response with user language` });
+  session.insuranceRecommendationHistory.push({ role: "user", content: `Task: respond to user question in their preferred language, using the provided reference for context.\n\n Question: ${message}\n\n Reference: ${referencesText} ` });
   const response = await createChatCompletion({
     messages: session.insuranceRecommendationHistory,
     tools: chatManager.getTools(),
