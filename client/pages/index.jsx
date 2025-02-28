@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { RefreshCw } from "react-feather";
 import ChevronLeftIcon from "../components/ChevronLeftIcon.jsx";
 import marryProfile from "../assets/avatar/michael.svg";
 import ChatMessage from "../components/ChatMessage.jsx";
@@ -35,7 +36,7 @@ function Header({ onProfileClick, setChatLog }) {
           setChatLog([WELCOME_MESSAGE]);
         }}
       >
-        Refresh
+        <RefreshCw />
       </button>
     </div>
   );

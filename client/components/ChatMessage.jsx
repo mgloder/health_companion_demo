@@ -6,6 +6,8 @@ import marryProfile from "../assets/avatar/michael.svg";
 import aia from "../assets/aia.png";
 import bupa from "../assets/bupa.png";
 import fwd from "../assets/fwd.png";
+import insurance from "../assets/insurance.png";
+import shield from "../assets/shield.png";
 import greenCheck from "../assets/green-check.png";
 import { useState } from "react";
 import UploadCard from "./UploadCard";
@@ -347,6 +349,7 @@ function renderRecommendDoctor(data, onAction) {
           {data.doctors.map((item, index) => {
             return (<li className="mb-1" key={index}>
               <b className="text-base">{item.doctor}</b>
+              <img className="inline-block ml-1 mb-0.5" src={item.coverage ? insurance : shield} alt="coverage" width={18} height={18} />
               <br />
               <p className="mt-1 ml-4 text-xs text-black">科室：{item.specialty}</p>
               <p className="mt-1 ml-4 text-xs text-black">地址：{item.address}</p>
@@ -396,7 +399,7 @@ function renderRecommendInsurance(data, onAction) {
       <div
         className={`max-w-[75%] rounded-2xl p-3 bg-[#F0F1F9] shadow-md rounded-bl-none`}
       >
-        {`这位 ${data.doctor_name} 目前不在您的保险网络内。为了更好地保障您的就医选择，我可以为您介绍一些覆盖更广的保险方案，这样您未来就诊时会有更多选择。`}
+        {`${data.doctor_name} 目前不在您的保险网络内。为了更好地保障您的就医选择，我可以为您介绍一些覆盖更广的保险方案，这样您未来就诊时会有更多选择。`}
         <div className="mt-2 float-right">
           {
             <>

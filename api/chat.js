@@ -132,7 +132,7 @@ async function handleDoctorRecommendation(session, message, chatManager) {
     session.recommendDoctorHistory = [
       {
         role: "developer",
-        content: `You are a helpful health assistant specialized in recommending doctors. Based on the user's symptoms, location, and preferences, provide tailored doctor recommendations that best match their needs. Reference: ${JSON.stringify(doctors)}`,
+        content: `You are a helpful health assistant specialized in recommending doctors. Response with user language. Based on the user's symptoms, location, and preferences, provide tailored doctor recommendations that best match their needs. Reference: ${JSON.stringify(doctors)}`,
       },
     ];
   }
@@ -160,6 +160,14 @@ async function handleDoctorRecommendation(session, message, chatManager) {
     // go to doctor_q_and_a step
     session.currentStep = STEPS.DOCTOR_Q_AND_A;
     session.recommendDoctors = data.doctors;
+    if (!session.doctorCoverage) {
+      session.doctorCoverage = await checkDoctorsInCoverage(session.recommendDoctors);
+      data.doctors = data.doctors.map((doctor) => {
+        const doctorCoverage = session.doctorCoverage.find((_) => _.doctor === doctor.doctor);
+        console.log(doctorCoverage);
+        return {...doctor, coverage: doctorCoverage?.coverage};
+      })
+    }
   }
   session.recommendDoctorHistory.push({ role: "assistant", content: chatMessage });
   return { message: chatMessage, type, data };
