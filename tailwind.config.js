@@ -46,7 +46,10 @@ export default {
         "sis-lime": {
           DEFAULT: "#D1FD57",
         },
-        "sis-purple": "#102A8A",
+        "sis-purple": {
+          DEFAULT: "#102A8A",
+          300: "#707EBD"
+        },
         "sis-white": {
           50: "#FFFFFFD9",
         }

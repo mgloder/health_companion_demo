@@ -10,11 +10,11 @@ const WELCOME_MESSAGE = {
   isUser: false,
   content: "您好！我是您的健康管家。如果您最近感到身体不适或有任何健康疑问，可以随时告诉我，我会尽力为您提供建议和支持。",
   data: null,
-  type: 'text',
-  timestamp: new Date().toISOString()
+  type: "text",
+  timestamp: new Date().toISOString(),
 };
 
-function Header({ onProfileClick }) {
+function Header({ onProfileClick, setChatLog }) {
   return (
     <div className="flex items-center px-8 py-3 bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
       <img
@@ -24,6 +24,19 @@ function Header({ onProfileClick }) {
         onClick={onProfileClick}
       />
       <h1 className="ml-3.5 text-xl font-medium">AI 健康管家</h1>
+      <button
+        className="ml-auto"
+        onClick={() => {
+          sessionStorage.clear();
+          fetch("/clear-cookie", {
+            method: "GET",
+            credentials: "include",
+          });
+          setChatLog([WELCOME_MESSAGE]);
+        }}
+      >
+        Refresh
+      </button>
     </div>
   );
 }
@@ -63,7 +76,7 @@ export default function InsuranceChat() {
             isUser: false,
             content: message,
             data,
-            type: uploadFile ? 'upload-file' : type,
+            type: uploadFile ? "upload-file" : type,
             timestamp: new Date().toISOString(),
           };
           setChatLog([...chatLog, newMessage]);
@@ -96,14 +109,14 @@ export default function InsuranceChat() {
       timestamp: new Date().toISOString(),
     };
     console.log(message);
-    if (message === 'purchase_online') {
+    if (message === "purchase_online") {
       newMessage = {
         id: chatLog.length + 1,
         isUser: false,
-        content: '',
+        content: "",
         type: "purchase_success",
         timestamp: new Date().toISOString(),
-      }
+      };
     }
     setChatLog([...chatLog, newMessage]);
     sessionStorage.setItem("insuranceChatLog", JSON.stringify([...chatLog, newMessage]));
@@ -111,7 +124,7 @@ export default function InsuranceChat() {
 
   return (
     <div className="flex flex-col min-h-screen h-screen bg-gray-50">
-      <Header onProfileClick={() => setIsSliderOpen(true)} />
+      <Header onProfileClick={() => setIsSliderOpen(true)} setChatLog={setChatLog} />
 
       <div className="flex-1 overflow-scroll px-4 py-4 max-h-[calc(100vh-12rem)]">
         {chatLog.map(message => (

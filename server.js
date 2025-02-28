@@ -108,6 +108,8 @@ import { registerUploadRoutes } from './api/upload.js';
 import { registerSearchRoutes } from './api/search.js';
 import { registerEmbeddingsRoutes } from './api/embeddings.js';
 import { registerTranscribeRoutes } from './api/transcribe.js';
+import { checkDoctorsInCoverage } from "./api/healthAssistantMachine.js";
+import { searchSimilar } from "./utils/cosmos.js";
 
 registerUploadRoutes(server);
 registerSearchRoutes(server);
@@ -181,6 +183,18 @@ server.get("/api-env", async (request, reply) => {
     PORT: process.env.PORT,
     APP_DOMAIN: process.env.APP_DOMAIN,
   };
+});
+
+server.get('/clear-cookie', async (request, reply) => {
+  logger.info("Clearing cookie");
+  await request.session.destroy();
+  reply
+    .clearCookie('sessionId', { path: '/' })
+    .send({ message: 'Cookie has been cleared' });
+});
+
+server.post("/api/test", async (request, reply) => {
+  return await searchSimilar(request.body.message);
 });
 
 // Wait for Vite to be ready

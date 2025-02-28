@@ -19,18 +19,21 @@ const imgMap = {
 
 const mockInsurance = [{
   insuranceCompany: "友邦",
+  insuranceProductName: "AIA Voluntary Health Insurance Flexi Scheme",
   advantages: [
     "提供全球保障，覆盖广泛的健康、寿险和意外险",
     "强大的理赔网络，客户能够快速获得赔付",
   ],
 }, {
   insuranceCompany: "保柏",
+  insuranceProductName: "Bupa MyFlexi VHIS Plan",
   advantages: [
     "整合式医疗保健服务，全球覆盖与直付网络",
     "高端医疗服务，投保限制宽松，续保稳定",
   ],
 }, {
   insuranceCompany: "富卫",
+  insuranceProductName: "vCare Medical Plan",
   advantages: [
     "覆盖广泛，提供全面的住院和门诊保障",
     "灵活的保障计划，可根据个人需求定制。",
@@ -61,17 +64,20 @@ function renderPdfItem(pdfUrl, content) {
 function renderRecommendationItem(data) {
   return (
     <div className="">
-      <p className="text-[15px] font-light">我為你挑了三家公司產品以供对比：</p>
-      <div className="flex flex-col gap-2.5 mt-2.5 w-full">
+      <p className="text-[15px] font-light">我为你挑了三家公司产品以供对比：</p>
+      <div className="flex flex-col gap-2.5 mt-2.5 w-full pb-1">
         {
           data.map((item, index) => {
             return (
               <div key={index} className="px-3 py-1 bg-[#3660F91A] backdrop-blur-md rounded-2xl w-[277px]">
                 <div className="flex justify-between items-end">
-                  <div className="flex items-end gap-1">
+                  <div className="flex items-center gap-2">
                     <img className="inline-block rounded-full mt-1" src={imgMap[item.insuranceCompany]} sizes={26}
                          height={26} width={26} />
-                    <span className="text-sm font-bold text-sis-purple">{item.insuranceCompany}</span>
+                    <div className="mt-2">
+                      <p className="text-xs font-light text-sis-purple-300">{item.insuranceCompany}</p>
+                      <p className="text-sm font-bold text-sis-purple">{item.insuranceProductName}</p>
+                    </div>
                   </div>
                   {/*<div className="text-sis-purple">*/}
                   {/*  {item.insuranceDiscountPrice && (*/}
