@@ -1,4 +1,5 @@
 import { CheckCircle, XCircle } from "react-feather";
+import Markdown from "react-markdown";
 
 import ToggleSwitch from "./ToggleSwitch.jsx";
 
@@ -319,7 +320,7 @@ function renderConfirmDoctor(content, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
-      <p className="text-[15px]">{content}</p>
+      <Markdown>{content}</Markdown>
       <div className="mt-2 float-right">
         {
           <>
@@ -349,7 +350,8 @@ function renderRecommendDoctor(data, onAction) {
           {data.doctors.map((item, index) => {
             return (<li className="mb-1" key={index}>
               <b className="text-base">{item.doctor}</b>
-              <img className="inline-block ml-1 mb-0.5" src={item.coverage ? insurance : shield} alt="coverage" width={18} height={18} />
+              <img className="inline-block ml-1 mb-0.5" src={item.coverage ? insurance : shield} alt="coverage"
+                   width={18} height={18} />
               <br />
               <p className="mt-1 ml-4 text-xs text-black">科室：{item.specialty}</p>
               <p className="mt-1 ml-4 text-xs text-black">地址：{item.address}</p>
@@ -523,7 +525,7 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
       );
     }
 
-    return <p className="text-[15px]">{content}</p>;
+    return <Markdown>{content}</Markdown>;
   };
 
   return (
