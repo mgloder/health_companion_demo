@@ -17,6 +17,12 @@ export const STEPS = {
   INSURANCE_RECOMMENDATION: 8,
 };
 
+export const MESSAGE_TYPES = Object.freeze({
+  TEXT: "text",
+  RECOMMEND_DOCTOR: "recommendDoctorHistory",
+  DOCTOR_QA: "doctorQAHistory",
+});
+
 
 export class ChatManager {
   constructor(context) {
@@ -50,7 +56,6 @@ export class ChatManager {
 
     this.addToolChatMessage(toolCallId, `回复 "好的，我明白了！为了方便我帮您查询，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
     const response = await createChatCompletion({
-      model: "gpt-4o-mini",
       messages: this.getChatHistory(),
     });
     this.addChatMessage(response.choices[0].message);
@@ -65,7 +70,6 @@ export class ChatManager {
     this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 重新收集症状的细节`);
 
     const response = await createChatCompletion({
-      model: "gpt-4o-mini",
       messages: this.getChatHistory(),
     });
     this.addChatMessage(response.choices[0].message);

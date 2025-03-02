@@ -108,7 +108,6 @@ import { registerUploadRoutes } from './api/upload.js';
 import { registerSearchRoutes } from './api/search.js';
 import { registerEmbeddingsRoutes } from './api/embeddings.js';
 import { registerTranscribeRoutes } from './api/transcribe.js';
-import { checkDoctorsInCoverage } from "./api/healthAssistantMachine.js";
 import { searchSimilar } from "./utils/cosmos.js";
 
 registerUploadRoutes(server);
