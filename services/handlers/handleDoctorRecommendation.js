@@ -1,5 +1,5 @@
 import { zodResponseFormat } from "openai/helpers/zod";
-import { checkDoctorsInCoverage, STEPS } from "../chatManager.js";
+import { checkDoctorsInCoverage, MESSAGE_TYPES, STEPS } from "../chatManager.js";
 import { createChatCompletion } from "../../utils/openai.js";
 import { RESPONSE_FORMAT } from "../../utils/healthAssistantUtil.js";
 
@@ -23,7 +23,7 @@ export async function handleDoctorRecommendation(session, message, chatManager) 
   });
 
   let toolMessage;
-  let type = "recommend_doctor";
+  let type = MESSAGE_TYPES.RECOMMEND_DOCTOR;
   let data = null;
 
   if (response?.choices[0].message.tool_calls) {
@@ -33,7 +33,7 @@ export async function handleDoctorRecommendation(session, message, chatManager) 
     type = ret.type;
   }
   const chatMessage = response?.choices[0].message.content || toolMessage || "";
-  if (type !== 'text') {
+  if (type !== MESSAGE_TYPES.TEXT) {
     data = JSON.parse(chatMessage);
     // go to doctor_q_and_a step
     session.currentStep = STEPS.DOCTOR_Q_AND_A;
@@ -53,7 +53,7 @@ export async function handleDoctorRecommendation(session, message, chatManager) 
 
 async function handleToolCalls(message, chatManager) {
   let toolMessage = "";
-  let type = "text";
+  let type = MESSAGE_TYPES.TEXT;
   let data = null;
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
@@ -63,7 +63,7 @@ async function handleToolCalls(message, chatManager) {
     if (name === "user_prefer_doctor") {
       chatManager.addRecommendMessage(message);
       toolMessage = await chatManager.handlePreferDoctor(toolCallId, args);
-      type = "recommend_doctor";
+      type = MESSAGE_TYPES.RECOMMEND_DOCTOR;
     }
   }
   return { type, toolMessage, data };

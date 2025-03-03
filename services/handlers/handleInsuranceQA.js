@@ -1,4 +1,5 @@
 import { createChatCompletion, insuranceRankedByRelatedness } from "../../utils/openai.js";
+import { MESSAGE_TYPES } from "../chatManager.js";
 
 export async function handleInsuranceQA(session, message, chatManager) {
   const ret = await insuranceRankedByRelatedness(message, 1);
@@ -19,7 +20,7 @@ export async function handleInsuranceQA(session, message, chatManager) {
   });
 
   let toolMessage;
-  let type = "confirm_doctor";
+  let type = MESSAGE_TYPES.CONFIRM_DOCTOR;
   let data = null;
 
   if (response?.choices[0].message.tool_calls) {
@@ -36,7 +37,7 @@ export async function handleInsuranceQA(session, message, chatManager) {
 
 async function handleToolCalls(message, chatManager) {
   let toolMessage = "";
-  let type = "text";
+  let type = MESSAGE_TYPES.TEXT;
   let data = null;
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;

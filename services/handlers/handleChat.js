@@ -1,5 +1,5 @@
 import { createChatCompletion } from "../../utils/openai.js";
-import { STEPS } from "../chatManager.js";
+import { MESSAGE_TYPES, STEPS } from "../chatManager.js";
 
 export async function handleChat(session, message, chatManager) {
   if (!session.chatHistory) {
@@ -45,7 +45,7 @@ export async function handleChat(session, message, chatManager) {
 
 async function handleToolCalls(message, chatManager) {
   let toolMessage = "";
-  let type = "text";
+  let type = MESSAGE_TYPES.TEXT;
   let data = null;
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
@@ -56,7 +56,7 @@ async function handleToolCalls(message, chatManager) {
       chatManager.addChatMessage(message);
       toolMessage = await chatManager.handleCollectInfo(toolCallId, args);
       if (chatManager.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES) {
-        type = "confirm";
+        type = MESSAGE_TYPES.CONFIRM_POSSIBLE_DISEASE;
         data = JSON.parse(toolMessage);
       }
     }
@@ -64,7 +64,7 @@ async function handleToolCalls(message, chatManager) {
     if (name === "user_confirm_diagnosis") {
       chatManager.addChatMessage(message);
       toolMessage = await chatManager.handleConfirmDiagnosis(toolCallId, args);
-      type = "confirm_upload";
+      type = MESSAGE_TYPES.CONFIRM_INSURANCE_UPLOAD;
     }
 
     if (name === "user_reject_diagnosis") {
@@ -74,7 +74,7 @@ async function handleToolCalls(message, chatManager) {
 
     if (name === "user_uploaded_insurance_coverage") {
       toolMessage = await chatManager.handleUploadedInsuranceCoverage(toolCallId, args);
-      type = "confirm_insurance";
+      type = MESSAGE_TYPES.CONFIRM_INSURANCE;
       data = JSON.parse(toolMessage);
     }
 

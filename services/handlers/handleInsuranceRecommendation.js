@@ -1,5 +1,6 @@
 import { searchSimilar } from "../../utils/cosmos.js";
 import { createChatCompletion } from "../../utils/openai.js";
+import { MESSAGE_TYPES } from "../chatManager.js";
 
 export async function handleInsuranceRecommendation(session, message, chatManager) {
   if (!session.insuranceRecommendationHistory) {
@@ -30,12 +31,12 @@ export async function handleInsuranceRecommendation(session, message, chatManage
 
   const chatMessage = response?.choices[0].message.content;
   session.insuranceRecommendationHistory.push({ role: "assistant", content: chatMessage });
-  return { message: chatMessage, type: 'text' };
+  return { message: chatMessage, type: MESSAGE_TYPES.TEXT };
 }
 
 async function handleToolCalls(message, chatManager) {
   let toolMessage = "";
-  let type = "text";
+  let type = MESSAGE_TYPES.TEXT;
   let data = null;
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
@@ -44,7 +45,7 @@ async function handleToolCalls(message, chatManager) {
 
     if (name === 'user_want_to_purchase_insurance') {
       toolMessage = chatManager.handleWantToPurchaseInsurance(toolCallId, args);
-      type = "purchase_insurance";
+      type = MESSAGE_TYPES.PURCHASE_INSURANCE;
     }
 
   }

@@ -19,8 +19,14 @@ export const STEPS = {
 
 export const MESSAGE_TYPES = Object.freeze({
   TEXT: "text",
-  RECOMMEND_DOCTOR: "recommendDoctorHistory",
-  DOCTOR_QA: "doctorQAHistory",
+  CONFIRM_POSSIBLE_DISEASE: "confirm_possible_disease",
+  CONFIRM_INSURANCE_UPLOAD: "confirm_insurance_upload",
+  CONFIRM_INSURANCE: "confirm_insurance",
+  RECOMMEND_INSURANCE: "recommend_insurance",
+  NEED_RECOMMEND_INSURANCE: "need_recommend_insurance",
+  RECOMMEND_DOCTOR: "recommend_doctor",
+  CONFIRM_DOCTOR: "confirm_doctor",
+  PURCHASE_INSURANCE: "purchase_insurance",
 });
 
 
@@ -63,7 +69,6 @@ export class ChatManager {
   }
 
   async handleRejectDiagnosis(toolCallId, args) {
-    // return collect_info step
     this.session.currentStep = STEPS.COLLECT_INFO;
     this.session.askedQuestions = 0;
 
@@ -162,18 +167,6 @@ export class ChatManager {
 
   addToolRecommendMessage(toolCallId, content) {
     this.session.recommendDoctorHistory.push({
-      role: "tool",
-      tool_call_id: toolCallId,
-      content,
-    });
-  }
-
-  addDoctorQAMessage(message) {
-    this.session.doctorQAHistory.push(message);
-  }
-
-  addToolDoctorQAMessage(toolCallId, content) {
-    this.session.doctorQAHistory.push({
       role: "tool",
       tool_call_id: toolCallId,
       content,

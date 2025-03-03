@@ -67,7 +67,7 @@ function renderPdfItem(pdfUrl, content) {
 function renderRecommendationItem(data) {
   return (
     <div className="">
-      <p className="text-[15px] font-light">我为你挑了三家公司产品以供对比：</p>
+      <p className="text-[15px] font-light leading-6">我为你挑了三家公司产品以供对比：</p>
       <div className="flex flex-col gap-2.5 mt-2.5 w-full pb-1">
         {
           data.map((item, index) => {
@@ -202,7 +202,7 @@ function renderConfirmItem(data, onAction) {
           <li>参考链接：<a href={data.reference_link}>WebMD</a></li>
         </ul>
       }
-      <p className="mt-2 text-[15px]">{data.recommendation}</p>
+      <p className="mt-2 text-[15px] leading-6">{data.recommendation}</p>
       <div className="mt-0.5 float-right">
         {
           isClicked ?
@@ -242,7 +242,20 @@ function renderConfirmUploadItem(content, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
-      <p className="text-[15px]">{content}</p>
+      <Markdown components={{
+        p(props) {
+          const {node, ...rest} = props
+          return <p className="text-[15px] leading-6 inline" {...rest} />
+        },
+        ol(props) {
+          const {node, ...rest} = props
+          return <ol className="my-2 list-decimal list-inside" {...rest} />
+        },
+        li(props) {
+          const {node, ...rest} = props
+          return <li className="mb-1 text-sis-purple" {...rest} />
+        },
+      }}>{content}</Markdown>
       <div className="mt-0.5 float-right">
         {
           isClicked ?
@@ -283,7 +296,7 @@ function renderConfirmInsurance(data, onAction) {
     <div>
       <p
         className="text-sm mb-2">{`您购买的保险来自 保柏（亚洲）有限公司，合同编号为 ${data.insurance_contract_number}，保障期为 ${data.coverage_start_date} 至 ${data.coverage_end_date}。`}</p>
-      <p className="text-[15px] mb-2">这是我根据医疗保单查找的信息</p>
+      <p className="text-[15px] leading-6 mb-2">这是我根据医疗保单查找的信息</p>
       {
         <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">
           {data.summaries.map((item, index) => {
@@ -320,7 +333,20 @@ function renderConfirmDoctor(content, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
-      <Markdown>{content}</Markdown>
+      <Markdown components={{
+        p(props) {
+          const {node, ...rest} = props
+          return <p className="text-[15px] leading-6 inline" {...rest} />
+        },
+        ol(props) {
+          const {node, ...rest} = props
+          return <ol className="my-2 list-decimal list-inside" {...rest} />
+        },
+        li(props) {
+          const {node, ...rest} = props
+          return <li className="mb-1 text-sis-purple text-sm" {...rest} />
+        },
+      }}>{content}</Markdown>
       <div className="mt-2 float-right">
         {
           <>
@@ -344,7 +370,7 @@ function renderRecommendDoctor(data, onAction) {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
   return (
     <div className="">
-      <p className="text-[15px] mb-1">这边帮您推荐了一下医生：</p>
+      <p className="text-[15px] leading-6 mb-1">这边帮您推荐了一下医生：</p>
       {
         <ul className="text-sis-purple ml-2 mt-1 text-sm leading-[18px] list-disc list-inside">
           {data.doctors.map((item, index) => {
@@ -399,7 +425,7 @@ function renderRecommendInsurance(data, onAction) {
         className="w-8 h-8 rounded-full mr-2 self-end"
       />
       <div
-        className={`max-w-[75%] rounded-2xl p-3 bg-[#F0F1F9] shadow-md rounded-bl-none`}
+        className={`max-w-[75%] rounded-2xl p-3 bg-[#F0F1F9] shadow-md rounded-bl-none text-[15px] leading-6`}
       >
         {`${data.doctor_name} 目前不在您的保险网络内。为了更好地保障您的就医选择，我可以为您介绍一些覆盖更广的保险方案，这样您未来就诊时会有更多选择。`}
         <div className="mt-2 float-right">
@@ -426,7 +452,7 @@ function renderPurchaseInsurance(content, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
-      <p className="text-[15px]">{content}</p>
+      <p className="text-[15px] leading-6">{content}</p>
       <div className="mt-0.5 float-right">
         {
           isClicked ?
@@ -492,11 +518,11 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
       return (<div><p>OK!請麻烦填寫资料👇</p></div>);
     }
 
-    if (type === "confirm") {
+    if (type === "confirm_possible_disease") {
       return renderConfirmItem(data, onAction);
     }
 
-    if (type === "confirm_upload") {
+    if (type === "confirm_insurance_upload") {
       return renderConfirmUploadItem(content, onAction);
     }
 
@@ -525,7 +551,20 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
       );
     }
 
-    return <Markdown>{content}</Markdown>;
+    return <Markdown components={{
+      p(props) {
+        const {node, ...rest} = props
+        return <p className="text-[15px] leading-6 inline" {...rest} />
+      },
+      ul(props) {
+        const {node, ...rest} = props
+        return <ul className="my-2 list-decimal list-inside" {...rest} />
+      },
+      li(props) {
+        const {node, ...rest} = props
+        return <li className="mb-1 text-sis-purple text-sm" {...rest} />
+      },
+    }}>{content}</Markdown>;
   };
 
   return (

@@ -1,6 +1,6 @@
 import { zodResponseFormat } from "openai/helpers/zod";
 
-import { checkDoctorsInCoverage } from "../chatManager.js";
+import { checkDoctorsInCoverage, MESSAGE_TYPES } from "../chatManager.js";
 import { createChatCompletion } from "../../utils/openai.js";
 import { RESPONSE_FORMAT } from "../../utils/healthAssistantUtil.js";
 
@@ -23,7 +23,7 @@ export async function handleDoctorQA(session, message, chatManager) {
   });
 
   let toolMessage;
-  let type = "recommend_insurance";
+  let type = MESSAGE_TYPES.RECOMMEND_INSURANCE;
   let data = null;
 
   if (response?.choices[0].message.tool_calls) {
@@ -56,16 +56,15 @@ export async function handleDoctorQA(session, message, chatManager) {
 
 async function handleToolCalls(message, chatManager) {
   let toolMessage = "";
-  let type = "text";
+  let type = MESSAGE_TYPES.TEXT;
   let data = null;
   for (const toolCall of message.tool_calls) {
-    const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
+    const { function: { name, arguments: argStr } } = toolCall;
     console.log(`${name} tool call arguments:`, argStr);
-    const args = JSON.parse(argStr);
 
     if (name === 'user_need_recommend_insurance') {
       chatManager.handleNeedRecommendInsurance(message);
-      type = "need_recommend_insurance";
+      type = MESSAGE_TYPES.NEED_RECOMMEND_INSURANCE;
     }
   }
   return { type, toolMessage, data };
