@@ -49,7 +49,7 @@ async function handleToolCalls(message, chatManager) {
   let data = null;
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
-    console.log(`${name} tool call arguments:`, argStr);
+    console.log(`handle chat ${name} tool call arguments:`, argStr);
     const args = JSON.parse(argStr);
 
     if (name === "collect_user_symptoms") {

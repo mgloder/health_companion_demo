@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { RefreshCw } from "react-feather";
-import ChevronLeftIcon from "../components/ChevronLeftIcon.jsx";
 import marryProfile from "../assets/avatar/michael.svg";
 import ChatMessage from "../components/ChatMessage.jsx";
 import ChatFooterInput from "../components/ChatFooterInput.jsx";
@@ -80,6 +78,25 @@ export default function InsuranceChat() {
             type: uploadFile ? "upload-file" : type,
             timestamp: new Date().toISOString(),
           };
+          if (type === "recommend_doctor") {
+            setTimeout(() => {
+              setChatLog(prev => {
+                if (prev.length === newMessage.id) {
+                  return [
+                    ...prev,
+                    {
+                      id: prev.length + 1,
+                      isUser: false,
+                      content: "我注意到您目前的Bupa保单在手术保障方面可能还有优化空间。为了更好地满足您的医疗需求，我建议您可以考虑补充一份自愿医保，这样可以让您的保障更加全面。我这边有一些不错的方案，您有兴趣了解一下吗？",
+                      timestamp: new Date().toISOString(),
+                      type: "recommend_insurance_client",
+                    },
+                  ];
+                }
+                return prev;
+              });
+            }, 5000);
+          }
           setChatLog([...chatLog, newMessage]);
           sessionStorage.setItem("insuranceChatLog", JSON.stringify([...chatLog, newMessage]));
         });

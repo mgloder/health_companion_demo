@@ -40,7 +40,7 @@ async function handleToolCalls(message, chatManager) {
   let data = null;
   for (const toolCall of message.tool_calls) {
     const { id: toolCallId, function: { name, arguments: argStr } } = toolCall;
-    console.log(`${name} tool call arguments:`, argStr);
+    console.log(`handle insurance recommendation ${name} tool call arguments:`, argStr);
     const args = JSON.parse(argStr);
 
     if (name === 'user_want_to_purchase_insurance') {

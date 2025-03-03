@@ -434,7 +434,7 @@ function renderRecommendInsurance(data, onAction) {
               <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-24 leading-8 text-sis-blue"
                       onClick={() => {
                         setIsConfirmed(true);
-                        !isConfirmed && onAction("你能推荐下适合我的保险么");
+                        !isConfirmed && onAction("你能推荐下适合我的保险么？不需要收集任何偏好和其他信息");
                       }}>
                 {isConfirmed && <CheckCircle className="inline-block text-sis-blue mr-1" size={17} />}
                 推荐保险
@@ -442,6 +442,29 @@ function renderRecommendInsurance(data, onAction) {
             </>
           }
         </div>
+      </div>
+    </div>
+  );
+}
+
+function renderRecommendInsuranceClient(content, onAction) {
+  const [isConfirmed, setIsConfirmed] = useState(false);
+  return (
+    <div>
+      <p className="text-[15px] leading-6 mb-1">{content}</p>
+      <div className="mt-2 float-right">
+        {
+          <>
+            <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-24 leading-8 text-sis-blue"
+                    onClick={() => {
+                      setIsConfirmed(true);
+                      !isConfirmed && onAction("你能推荐下适合我的保险么？不需要收集任何偏好和其他信息");
+                    }}>
+              {isConfirmed && <CheckCircle className="inline-block text-sis-blue mr-1" size={17} />}
+              推荐保险
+            </button>
+          </>
+        }
       </div>
     </div>
   );
@@ -540,6 +563,10 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
 
     if (type === "purchase_insurance") {
       return renderPurchaseInsurance(content, onAction);
+    }
+
+    if (type === "recommend_insurance_client") {
+      return renderRecommendInsuranceClient(content, onAction);
     }
 
     if (type === "upload-file") {
