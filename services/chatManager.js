@@ -42,10 +42,10 @@ export class ChatManager {
     let response_format;
 
     if (this.session.askedQuestions < MAX_FOLLOW_UP_QUESTIONS) {
-      this.addToolChatMessage(toolCallId, `根据用户的症状去询问更细节的症状, 问题应该简洁`);
+      this.addToolChatMessage(toolCallId, `Ask concise follow-ups based on user's symptoms`);
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
-      this.addToolChatMessage(toolCallId, `根据信息 ${JSON.stringify(this.getSymptoms())} 以列表的方式列出最有可能的一种疾病`);
+      this.addToolChatMessage(toolCallId, `Output the single most likely disease based on ${JSON.stringify(this.getSymptoms())}`);
       response_format = zodResponseFormat(RESPONSE_FORMAT.CONFIRM_RESPONSE_FORMAT, "confirm_response_format");
     }
     const response = await createChatCompletion({

@@ -242,20 +242,22 @@ function renderConfirmUploadItem(content, onAction) {
   const [isConfirmed, setIsConfirmed] = useState(false);
   return (
     <div className="">
-      <Markdown components={{
-        p(props) {
-          const {node, ...rest} = props
-          return <p className="text-[15px] leading-6 inline" {...rest} />
-        },
-        ol(props) {
-          const {node, ...rest} = props
-          return <ol className="my-2 list-decimal list-inside" {...rest} />
-        },
-        li(props) {
-          const {node, ...rest} = props
-          return <li className="mb-1 text-sis-purple" {...rest} />
-        },
-      }}>{content}</Markdown>
+      <div>
+        <Markdown components={{
+          p(props) {
+            const { node, ...rest } = props;
+            return <p className="text-[15px] leading-6 inline" {...rest} />;
+          },
+          ol(props) {
+            const { node, ...rest } = props;
+            return <ol className="my-2 list-decimal list-inside" {...rest} />;
+          },
+          li(props) {
+            const { node, ...rest } = props;
+            return <li className="mb-1 text-sis-purple" {...rest} />;
+          },
+        }}>{content}</Markdown>
+      </div>
       <div className="mt-0.5 float-right">
         {
           isClicked ?
@@ -335,16 +337,16 @@ function renderConfirmDoctor(content, onAction) {
     <div className="">
       <Markdown components={{
         p(props) {
-          const {node, ...rest} = props
-          return <p className="text-[15px] leading-6 inline" {...rest} />
+          const { node, ...rest } = props;
+          return <p className="text-[15px] leading-6 inline" {...rest} />;
         },
         ol(props) {
-          const {node, ...rest} = props
-          return <ol className="my-2 list-decimal list-inside" {...rest} />
+          const { node, ...rest } = props;
+          return <ol className="my-2 list-decimal list-inside" {...rest} />;
         },
         li(props) {
-          const {node, ...rest} = props
-          return <li className="mb-1 text-sis-purple text-sm" {...rest} />
+          const { node, ...rest } = props;
+          return <li className="mb-1 text-sis-purple text-sm" {...rest} />;
         },
       }}>{content}</Markdown>
       <div className="mt-2 float-right">
@@ -580,16 +582,16 @@ export default function ChatMessage({ isUser, content, timestamp, type = "text",
 
     return <Markdown components={{
       p(props) {
-        const {node, ...rest} = props
-        return <p className="text-[15px] leading-6 inline" {...rest} />
+        const { node, ...rest } = props;
+        return <p className="text-[15px] leading-6 inline" {...rest} />;
       },
       ul(props) {
-        const {node, ...rest} = props
-        return <ul className="my-2 list-decimal list-inside" {...rest} />
+        const { node, ...rest } = props;
+        return <ul className="my-2 list-decimal list-inside" {...rest} />;
       },
       li(props) {
-        const {node, ...rest} = props
-        return <li className="mb-1 text-sis-purple text-sm" {...rest} />
+        const { node, ...rest } = props;
+        return <li className="mb-1 text-sis-purple text-sm" {...rest} />;
       },
     }}>{content}</Markdown>;
   };
