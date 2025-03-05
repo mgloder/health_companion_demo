@@ -7,12 +7,12 @@ const COLLECT_USER_SYMPTOMS = {
     parameters: {
       type: "object",
       properties: {
-        symptoms: { type: "string", description: "用户描述的具体生理症状" },
-        others: { type: "string", description: "用户提供的其他相关信息" },
+        symptoms: { type: "string", description: "physical symptoms" },
+        others: { type: "string", description: "others" },
       },
       required: ["symptoms"],
     },
-    description: "收集用户提供的症状及相关信息，心理问题除外",
+    description: "Collect user symptoms exclude mental health issues.",
   },
 };
 
