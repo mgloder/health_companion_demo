@@ -42,7 +42,7 @@ export class ChatManager {
     let response_format;
 
     if (this.session.askedQuestions < MAX_FOLLOW_UP_QUESTIONS) {
-      this.addToolChatMessage(toolCallId, `Ask concise follow-ups based on user's symptoms`);
+      this.addToolChatMessage(toolCallId, `Probe symptom specifics with concise, targeted follow-ups based on the user's descriptions.`);
     } else {
       this.session.currentStep = STEPS.GENERATE_POSSIBLE_DISEASES;
       this.addToolChatMessage(toolCallId, `Output the single most likely disease based on ${JSON.stringify(this.getSymptoms())}`);
