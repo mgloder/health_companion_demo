@@ -4,7 +4,7 @@ import { createChatCompletion, doctorRankedByRelatedness, insuranceRankedByRelat
 import { TOOLS, RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
 import doctors from "../data/dummy_medical_data.json" with { type: "json" };
 
-const MAX_FOLLOW_UP_QUESTIONS = 3;
+const MAX_FOLLOW_UP_QUESTIONS = 2;
 
 export const STEPS = {
   COLLECT_INFO: 1,

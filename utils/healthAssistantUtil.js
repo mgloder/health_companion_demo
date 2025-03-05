@@ -7,12 +7,12 @@ const COLLECT_USER_SYMPTOMS = {
     parameters: {
       type: "object",
       properties: {
-        symptoms: { type: "string", description: "user describe symptoms" },
-        others: { type: "string", description: "user provide other symptoms" },
+        symptoms: { type: "string", description: "用户描述的具体生理症状" },
+        others: { type: "string", description: "用户提供的其他相关信息" },
       },
       required: ["symptoms"],
     },
-    description: "Collect the symptoms and related information provided by the user, excluding psychological issues.",
+    description: "收集用户提供的症状及相关信息，心理问题除外",
   },
 };
 
@@ -183,7 +183,7 @@ const INSURANCE_COVERAGE_RESPONSE = z.object({
   coverage_end_date: z.string().describe('保险计划的保障结束日期，格式为YYYY-MM-DD'),
   summaries: z.array(z.object({
     disease: z.string().describe('疾病'),
-    summary: z.string().describe('简要说明保险覆盖情况：是否包含、赔付比例、主要限制条件（≤50字）'),
+    summary: z.string().describe('总结说明保险覆盖情况：是否包含、赔付比例、主要限制条件。需要在50个字以内'),
   })),
 });
 
