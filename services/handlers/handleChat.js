@@ -13,6 +13,10 @@ export async function handleChat(session, message, chatManager) {
     ];
   }
 
+  if (!session.currentStep) {
+    session.currentStep = STEPS.COLLECT_INFO;
+  }
+
   session.chatHistory.push({ role: "user", content: message });
   let response;
   try {
@@ -87,6 +91,10 @@ async function handleToolCalls(message, chatManager) {
     if (name === "user_need_more_detail") {
       chatManager.addChatMessage(message);
       toolMessage = await chatManager.handleNeedMoreDetail(toolCallId, args);
+    }
+
+    if (name === "user_need_recommend_doctor") {
+      toolMessage = chatManager.handleNeedRecommendDoctor(toolCallId, args);
     }
   }
   return { type, toolMessage, data };

@@ -4,7 +4,7 @@ import { createChatCompletion, doctorRankedByRelatedness, insuranceRankedByRelat
 import { TOOLS, RESPONSE_FORMAT } from "../utils/healthAssistantUtil.js";
 import doctors from "../data/dummy_medical_data.json" with { type: "json" };
 
-const MAX_FOLLOW_UP_QUESTIONS = 2;
+export const MAX_FOLLOW_UP_QUESTIONS = 2;
 
 export const STEPS = {
   COLLECT_INFO: 1,
@@ -18,6 +18,7 @@ export const STEPS = {
 };
 
 export const MESSAGE_TYPES = Object.freeze({
+  NONE: "none",
   TEXT: "text",
   CONFIRM_POSSIBLE_DISEASE: "confirm_possible_disease",
   CONFIRM_INSURANCE_UPLOAD: "confirm_insurance_upload",
@@ -193,6 +194,7 @@ export class ChatManager {
     let tools = [];
     if (this.getCurrentStep() === STEPS.COLLECT_INFO) {
       tools.push(TOOLS.COLLECT_USER_SYMPTOMS);
+      tools.push(TOOLS.USER_NEED_RECOMMEND_DOCTOR);
     }
     if (this.getCurrentStep() === STEPS.GENERATE_POSSIBLE_DISEASES) {
       tools.push(TOOLS.USER_CONFIRM_DIAGNOSIS);
