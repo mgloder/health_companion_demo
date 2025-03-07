@@ -82,6 +82,12 @@ async function handleToolCalls(message, chatManager) {
       toolMessage = await chatManager.handleUploadedInsuranceCoverage(toolCallId, args);
       type = MESSAGE_TYPES.CONFIRM_INSURANCE;
       data = JSON.parse(toolMessage);
+      // handle action special case;
+      if (data.summaries && data.summaries.length === 1) {
+        if (data.summaries[0].disease === "undefined" || data.summaries[0].summary === "summary") {
+          data.summaries = [];
+        }
+      }
     }
 
     if (name === "user_reject_upload") {
@@ -94,7 +100,9 @@ async function handleToolCalls(message, chatManager) {
     }
 
     if (name === "user_need_recommend_doctor") {
-      toolMessage = chatManager.handleNeedRecommendDoctor(toolCallId, args);
+      chatManager.addChatMessage(message);
+      toolMessage = await chatManager.handleActionConfirm(toolCallId, args);
+      type = MESSAGE_TYPES.CONFIRM_INSURANCE_UPLOAD;
     }
   }
   return { type, toolMessage, data };

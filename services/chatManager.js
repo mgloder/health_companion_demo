@@ -84,11 +84,11 @@ export class ChatManager {
 
   async handleUploadedInsuranceCoverage(toolCallId, args) {
     this.session.currentStep = STEPS.GENERATE_INSURANCE_COVERAGE;
-    const [ret] = await insuranceRankedByRelatedness(`收集有关保险信息，同时帮我找到与这些疾病有关的信息 ${this.session.possibleDisease}`, 1);
+    const [ret] = await insuranceRankedByRelatedness(`收集有关保险信息，同时帮我找到与这些疾病有关的信息 症状:${this.session.symptoms} 疾病：${this.session.possibleDisease}`, 1);
     const { content } = ret;
     const messages = [{
       role: "user",
-      content: `Question: 对于每个疾病一句话总结是否在疾病中覆盖 疾病: ${this.session.possibleDisease}; Reference: ${content}`,
+      content: `Question: 一句话总结用户的症状和疾病是否在疾病中覆盖 症状:${this.session.symptoms} 疾病: ${this.session.possibleDisease}; Reference: ${content}`,
     }];
 
     const response = await createChatCompletion({
@@ -148,6 +148,18 @@ export class ChatManager {
     return '您好！为了更好地为您提供服务，想请问您更倾向于哪种购买方式呢？我们提供线上和线下两种选择：\n' +
       '\n' +
       '线上购买方便快捷，您可以随时随地进行咨询和办理，我们的专业顾问也会全程在线为您解答疑问；如果您更喜欢面对面交流，我们也可以为您安排线下服务，在您方便的时间和地点详细沟通。'
+  }
+
+  async handleActionConfirm(toolCallId) {
+    this.session.currentStep = STEPS.CONFIRMED_WITH_USER;
+
+    this.addToolChatMessage(toolCallId, `请回复 "好的，我明白了！为了帮助你寻找合适的医生，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
+    const response = await createChatCompletion({
+      messages: this.getChatHistory(),
+      temperature: 1.3,
+    });
+    this.addChatMessage(response.choices[0].message);
+    return response.choices[0].message.content;
   }
 
   addChatMessage(message) {

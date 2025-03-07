@@ -182,9 +182,9 @@ const INSURANCE_COVERAGE_RESPONSE = z.object({
   coverage_start_date: z.string().describe('保险计划的保障开始日期，格式为YYYY-MM-DD'),
   coverage_end_date: z.string().describe('保险计划的保障结束日期，格式为YYYY-MM-DD'),
   summaries: z.array(z.object({
-    disease: z.string().describe('疾病'),
-    summary: z.string().describe('总结说明保险覆盖情况：是否包含、赔付比例、主要限制条件。需要在50个字以内'),
-  })),
+    disease: z.string().describe('疾病。默认返回“Null”'),
+    summary: z.string().describe('总结说明保险覆盖情况：是否包含、赔付比例、主要限制条件。需要在50个字以内。默认返回“Null”'),
+  })).optional(),
 });
 
 const RECOMMEND_DOCTOR = z.object({
