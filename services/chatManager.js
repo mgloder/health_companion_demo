@@ -156,7 +156,6 @@ export class ChatManager {
     this.addToolChatMessage(toolCallId, `请回复 "好的，我明白了！为了帮助你寻找合适的医生，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
     const response = await createChatCompletion({
       messages: this.getChatHistory(),
-      temperature: 1.3,
     });
     this.addChatMessage(response.choices[0].message);
     return response.choices[0].message.content;

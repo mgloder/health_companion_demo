@@ -41,6 +41,7 @@ export async function handler(request) {
       console.log(messages);
       const response = await createChatCompletion({
         messages,
+        temperature: 1.3
       });
 
       return { type: MESSAGE_TYPES.CONFIRM_DOCTOR, data: response, message: response?.choices[0].message.content };

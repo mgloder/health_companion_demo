@@ -270,12 +270,12 @@ function renderConfirmUploadItem(content, onAction) {
               </div>
             </> :
             <>
-              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-36 leading-8 text-sis-blue"
                       onClick={() => {
                         setIsClicked(true);
                         setIsConfirmed(true);
                         onAction("我已上传相关的医疗保险文档");
-                      }}>上传
+                      }}>上传医疗保险文档
               </button>
               <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm ml-1 w-12 leading-8 text-sis-blue"
                       onClick={() => {
