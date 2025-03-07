@@ -35,7 +35,7 @@ export async function handler(request) {
     if (userMessageCount > MAX_FOLLOW_UP_QUESTIONS) {
       messages.push({
         role: "developer",
-        content: `Determine if the user needs medical attention and provide health advice with a warm and supportive tone to show care and encouragement.`,
+        content: `Determine if the user needs medical attention and provide health advice with a warm and supportive tone to show care and encouragement. Ensure responses are in the same language as the user’s input.`,
       });
 
       console.log(messages);
