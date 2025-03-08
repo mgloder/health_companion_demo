@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { RefreshCw } from "react-feather";
 import marryProfile from "../assets/avatar/michael.svg";
 import ChatMessage from "../components/ChatMessage.jsx";
@@ -13,7 +13,7 @@ const WELCOME_MESSAGE = {
   timestamp: new Date().toISOString(),
 };
 
-function Header({ onProfileClick, setChatLog, pollAction }) {
+function Header({ onProfileClick, setChatLog }) {
   return (
     <div className="flex items-center px-8 py-3 bg-gradient-to-r from-[#F2F2F2B8] to-[#D8E4FF67]">
       <img
@@ -32,7 +32,6 @@ function Header({ onProfileClick, setChatLog, pollAction }) {
             credentials: "include",
           });
           setChatLog([WELCOME_MESSAGE]);
-          pollAction.current = true;
         }}
       >
         <RefreshCw />
@@ -44,7 +43,6 @@ function Header({ onProfileClick, setChatLog, pollAction }) {
 export default function InsuranceChat() {
   const [chatLog, setChatLog] = useState([WELCOME_MESSAGE]);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
-  const pollAction = useRef(true);
 
   useEffect(() => {
     const storedChat = sessionStorage.getItem("insuranceChatLog");
@@ -108,52 +106,6 @@ export default function InsuranceChat() {
     }
   }, [chatLog]);
 
-  useEffect(() => {
-    const lastChatLog = chatLog.at(-1);
-    if (!pollAction.current) {
-      return;
-    }
-    if (lastChatLog && (lastChatLog.isUser || lastChatLog.id === WELCOME_MESSAGE.id)) {
-      return;
-    }
-
-    if (lastChatLog.type === "confirm_doctor") {
-      return;
-    }
-
-    const timeoutId = setTimeout(() => {
-      fetch("/api/action", {
-        method: "POST",
-        headers: {
-          "Cookie": document.cookie,
-        },
-        credentials: "include",
-      }).then((resp) =>
-        resp.json(),
-      ).then((respObj) => {
-        if (respObj.type) {
-          if (respObj.type === 'confirm_doctor') {
-            setChatLog(prev => ([
-              ...prev,
-              {
-                id: prev.length + 1,
-                isUser: false,
-                content: respObj.message,
-                timestamp: new Date().toISOString(),
-                type: respObj.type,
-              },
-            ]));
-          } else if (respObj.type === "none") {
-            pollAction.current = false;
-          }
-        }
-      });
-    }, 5000);
-
-    return () => clearTimeout(timeoutId);
-  }, [chatLog]);
-
-
   const handleSendMessage = (message) => {
     const newMessage = {
       id: chatLog.length + 1,
@@ -190,7 +142,7 @@ export default function InsuranceChat() {
 
   return (
     <div className="flex flex-col min-h-screen h-screen bg-gray-50">
-      <Header onProfileClick={() => setIsSliderOpen(true)} setChatLog={setChatLog} pollAction={pollAction} />
+      <Header onProfileClick={() => setIsSliderOpen(true)} setChatLog={setChatLog} />
 
       <div className="flex-1 overflow-scroll px-4 py-4 max-h-[calc(100vh-12rem)]">
         {chatLog.map(message => (

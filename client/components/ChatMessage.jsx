@@ -254,7 +254,7 @@ function renderConfirmUploadItem(content, onAction) {
           },
           li(props) {
             const { node, ...rest } = props;
-            return <li className="mb-1 text-sis-purple text-sm" {...rest} />;
+            return <li className="mb-1 text-sis-purple" {...rest} />;
           },
         }}>{content}</Markdown>
       </div>
@@ -270,12 +270,12 @@ function renderConfirmUploadItem(content, onAction) {
               </div>
             </> :
             <>
-              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-36 leading-8 text-sis-blue"
+              <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm w-12 leading-8 text-sis-blue"
                       onClick={() => {
                         setIsClicked(true);
                         setIsConfirmed(true);
                         onAction("我已上传相关的医疗保险文档");
-                      }}>上传医疗保险文档
+                      }}>上传
               </button>
               <button className="rounded-[1.25rem] bg-[#DCE5FE] text-sm ml-1 w-12 leading-8 text-sis-blue"
                       onClick={() => {
@@ -298,22 +298,19 @@ function renderConfirmInsurance(data, onAction) {
     <div>
       <p
         className="text-sm mb-2">{`您购买的保险来自 保柏（亚洲）有限公司，合同编号为 ${data.insurance_contract_number}，保障期为 ${data.coverage_start_date} 至 ${data.coverage_end_date}。`}</p>
-      {data.summaries && data.summaries.length > 0 && (<>
-        <p className="text-[15px] leading-6 mb-2">这是我根据医疗保单查找的信息</p>
-        {
-          <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">
-            {data.summaries.map((item, index) => {
-              return (
-                <li key={index} className="mb-1">
-                  <b>{item.disease}</b>
-                  <br />
-                  <p className="mt-1 ml-4 text-sm text-black">{item.summary}</p>
-                </li>
-              );
-            })}
-          </ul>
-        }
-      </>)
+      <p className="text-[15px] leading-6 mb-2">这是我根据医疗保单查找的信息</p>
+      {
+        <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">
+          {data.summaries.map((item, index) => {
+            return (
+              <li key={index} className="mb-1">
+                <b>{item.disease}</b>
+                <br />
+                <p className="mt-1 ml-4 text-sm text-black">{item.summary}</p>
+              </li>
+            );
+          })}
+        </ul>
       }
       <div className="mt-0.5 float-right">
         {

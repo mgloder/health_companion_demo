@@ -108,7 +108,6 @@ import { registerUploadRoutes } from './api/upload.js';
 import { registerSearchRoutes } from './api/search.js';
 import { registerEmbeddingsRoutes } from './api/embeddings.js';
 import { registerTranscribeRoutes } from './api/transcribe.js';
-import { registerActionRoutes } from './api/action.js';
 import { searchSimilar } from "./utils/cosmos.js";
 
 registerUploadRoutes(server);
@@ -116,7 +115,6 @@ registerSearchRoutes(server);
 registerEmbeddingsRoutes(server);
 registerChatRoutes(server);
 registerTranscribeRoutes(server, logger)
-registerActionRoutes(server)
 
 // Load existing data when server starts
 try {
