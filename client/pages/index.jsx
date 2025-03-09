@@ -7,7 +7,7 @@ import ChatFooterInput from "../components/ChatFooterInput.jsx";
 const WELCOME_MESSAGE = {
   id: 1,
   isUser: false,
-  content: "您好！我是您的健康管家。如果您最近感到身体不适或有任何健康疑问，可以随时告诉我，我会尽力为您提供建议和支持。",
+  content: "您好！我是您的健康管家Michael。如果有身体不适，请把具体的症状告诉我，我可以帮您分析病情并推荐合适的医生。",
   data: null,
   type: "text",
   timestamp: new Date().toISOString(),
