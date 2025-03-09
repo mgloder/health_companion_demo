@@ -64,7 +64,6 @@ async function handleToolCalls(message, chatManager) {
     }
 
     if (name === "user_confirm_diagnosis") {
-      chatManager.addChatMessage(message);
       toolMessage = await chatManager.handleConfirmDiagnosis(toolCallId, args);
       type = MESSAGE_TYPES.CONFIRM_INSURANCE_UPLOAD;
     }

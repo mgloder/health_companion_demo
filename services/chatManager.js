@@ -60,12 +60,12 @@ export class ChatManager {
     this.session.currentStep = STEPS.CONFIRMED_WITH_USER;
     this.session.possibleDisease = args.possible_disease;
 
-    this.addToolChatMessage(toolCallId, `回复 "好的，我明白了！为了方便我帮您查询，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
-    const response = await createChatCompletion({
-      messages: this.getChatHistory(),
-    });
-    this.addChatMessage(response.choices[0].message);
-    return response.choices[0].message.content;
+    // this.addToolChatMessage(toolCallId, `回复 "好的，我明白了！为了方便我帮您查询，您能上传一下医疗保险的相关文档吗？我会根据您的症状，看看保险是否覆盖相关的疾病。请您稍等一下哦~"`);
+    // const response = await createChatCompletion({
+    //   messages: this.getChatHistory(),
+    // });
+    // this.addChatMessage(response.choices[0].message);
+    return "好的，我可以帮您推荐医生。。。你有保单吗？我可以根据你的保单保障范围建议";
   }
 
   async handleRejectDiagnosis(toolCallId, args) {
@@ -101,11 +101,10 @@ export class ChatManager {
   async handleNeedMoreDetail(toolCallId, args) {
     this.session.currentStep = STEPS.DOCUMENT_Q_AND_A;
     this.session.insuranceInfo = args?.insuranceInfo;
-    this.addToolChatMessage(toolCallId, '回复 "好的，我可以帮您推荐医生。。。你有保单吗？我可以根据你的保单保障范围建议"');
+    this.addToolChatMessage(toolCallId, '回复 "好的，我明白了！您有什么关于医疗保险相关的问题都可以问我哦～。我会根据您的症状，看看保险是否覆盖相关的疾病"');
 
     const response = await createChatCompletion({
       messages: this.getChatHistory(),
-      temperature: 0.3,
     });
 
     // TODO: check response, if response contains "Target Information, e.g. coverage, location ,etc", then return with promotion message
