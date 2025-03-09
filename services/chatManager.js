@@ -65,7 +65,7 @@ export class ChatManager {
     //   messages: this.getChatHistory(),
     // });
     // this.addChatMessage(response.choices[0].message);
-    return "好的，我可以帮您推荐医生。。。你有保单吗？我可以根据你的保单保障范围建议";
+    return "您有医疗保险吗？我可以帮助您分析保单条款，推荐合适的医生";
   }
 
   async handleRejectDiagnosis(toolCallId, args) {
