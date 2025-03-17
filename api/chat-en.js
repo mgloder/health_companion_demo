@@ -33,11 +33,11 @@ export async function handler(request) {
   }
 
   if (session.currentStep === STEPS.DOCTOR_RECOMMENDATION) {
-    return await handleDoctorRecommendation(session, message, chatManager);
+    return await handleDoctorRecommendation(session, message, chatManager, true);
   }
 
   if (session.currentStep === STEPS.DOCTOR_Q_AND_A) {
-    return await handleDoctorQA(session, message, chatManager);
+    return await handleDoctorQA(session, message, chatManager, true);
   }
 
   if (session.currentStep === STEPS.INSURANCE_RECOMMENDATION) {

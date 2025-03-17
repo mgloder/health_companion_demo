@@ -207,7 +207,7 @@ function renderConfirmInsurance(data, onAction) {
   return (
     <div>
       <p
-        className="text-sm mb-2">{`Your insurance is provided by Bupa (Asia) Limited, with contract number ${data.insurance_contract_number}. The coverage period is from ${data.coverage_start_date} to ${data.coverage_end_date}.`}</p>
+        className="text-sm mb-2">{`Your insurance is provided by Bupa (Asia) Limited, with contract number 00466800 & Sub-contract(s). The coverage period is from ${data.coverage_start_date} to ${data.coverage_end_date}.`}</p>
       <p className="text-[15px] leading-6 mb-2">Here is the information I found based on your health insurance policy.</p>
       {
         <ul className="text-sis-purple ml-2 mt-1 leading-[18px] list-disc list-inside">

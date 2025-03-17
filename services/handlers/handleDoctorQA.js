@@ -2,9 +2,12 @@ import { zodResponseFormat } from "openai/helpers/zod";
 
 import { checkDoctorsInCoverage, MESSAGE_TYPES } from "../chatManager.js";
 import { createChatCompletion } from "../../utils/openai.js";
-import { RESPONSE_FORMAT } from "../../utils/healthAssistantUtilEN.js";
+import { RESPONSE_FORMAT as RESPONSE_FORMAT_EN} from "../../utils/healthAssistantUtilEN.js";
+import { RESPONSE_FORMAT as RESPONSE_FORMAT_CN } from "../../utils/healthAssistantUtil.js";
 
-export async function handleDoctorQA(session, message, chatManager) {
+export async function handleDoctorQA(session, message, chatManager, isEN = false) {
+  const RESPONSE_FORMAT = isEN ? RESPONSE_FORMAT_EN : RESPONSE_FORMAT_CN;
+
   if (!session.doctorQAHistory) {
     session.doctorCoverage = await checkDoctorsInCoverage(session.recommendDoctors);
     session.doctorQAHistory = [
