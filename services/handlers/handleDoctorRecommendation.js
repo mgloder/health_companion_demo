@@ -1,7 +1,7 @@
 import { zodResponseFormat } from "openai/helpers/zod";
 import { checkDoctorsInCoverage, MESSAGE_TYPES, STEPS } from "../chatManager.js";
 import { createChatCompletion } from "../../utils/openai.js";
-import { RESPONSE_FORMAT } from "../../utils/healthAssistantUtil.js";
+import { RESPONSE_FORMAT } from "../../utils/healthAssistantUtilEN.js";
 
 import doctors from "../../data/dummy_medical_data.json" with { type: "json" };
 

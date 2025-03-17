@@ -12,7 +12,7 @@ export async function handleInsuranceQA(session, message, chatManager) {
       },
     ];
   }
-  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDisease} and confirmed insurance info ${JSON.stringify(session.insuranceInfo)}, Question: ${message}; Reference: ${content}. Response with user language` });
+  session.insuranceQAHistory.push({ role: "user", content: `I have possible disease: ${session.possibleDisease} and confirmed insurance info ${JSON.stringify(session.insuranceInfo)}, Question: ${message}; Reference: ${content}.` });
   const response = await createChatCompletion({
     messages: session.insuranceQAHistory,
     tools: chatManager.getTools(),
