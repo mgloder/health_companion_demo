@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { RefreshCw } from "react-feather";
 import marryProfile from "../assets/avatar/michael.svg";
 import ChatMessage from "../components/ChatMessage.jsx";
@@ -42,6 +42,7 @@ function Header({ onProfileClick, setChatLog }) {
 
 export default function InsuranceChat() {
   const [chatLog, setChatLog] = useState([WELCOME_MESSAGE]);
+  const listRef = useRef(null);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
 
   useEffect(() => {
@@ -103,6 +104,12 @@ export default function InsuranceChat() {
       } catch (error) {
         console.error("Error sending message to agent:", error);
       }
+    }
+  }, [chatLog]);
+
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
     }
   }, [chatLog]);
 

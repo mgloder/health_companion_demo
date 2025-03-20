@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RefreshCw } from "react-feather";
 import marryProfile from "../../assets/avatar/michael.svg";
 import ChatMessage from "../../components/ENChatMessage.jsx";
@@ -42,6 +42,7 @@ function Header({ onProfileClick, setChatLog }) {
 
 export default function InsuranceChat() {
   const [chatLog, setChatLog] = useState([WELCOME_MESSAGE]);
+  const listRef = useRef(null);
   const [isSliderOpen, setIsSliderOpen] = useState(false);
 
   useEffect(() => {
@@ -106,6 +107,12 @@ export default function InsuranceChat() {
     }
   }, [chatLog]);
 
+  useEffect(() => {
+    if (listRef.current) {
+      listRef.current.scrollTop = listRef.current.scrollHeight;
+    }
+  }, [chatLog]);
+
   const handleSendMessage = (message) => {
     const newMessage = {
       id: chatLog.length + 1,
@@ -144,7 +151,7 @@ export default function InsuranceChat() {
     <div className="flex flex-col min-h-screen h-screen bg-gray-50">
       <Header onProfileClick={() => setIsSliderOpen(true)} setChatLog={setChatLog} />
 
-      <div className="flex-1 overflow-scroll px-4 py-4 max-h-[calc(100vh-12rem)]">
+      <div ref={listRef} className="flex-1 overflow-scroll px-4 py-4 max-h-[calc(100vh-12rem)]">
         {chatLog.map(message => (
           <ChatMessage
             key={message.id}
