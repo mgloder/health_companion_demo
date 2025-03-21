@@ -17,8 +17,7 @@ export default function Login() {
       });
 
       if (!response.ok) {
-        const result = await response.json();
-        throw new Error(result.message || 'login failed');
+        throw new Error('login failed');
       }
 
       window.location.href = '/';
@@ -31,7 +30,7 @@ export default function Login() {
     <div className="min-h-screen bg-gray-100 flex flex-col justify-center items-center px-4">
       <div className="w-full max-w-md bg-white p-8 rounded-lg shadow-lg">
         <h2 className="text-3xl font-extrabold text-center text-gray-900 mb-8">AI Health</h2>
-        {error && <p className="mb-4 text-center text-red-500">{error}</p>}
+        {error && <p className="mb-4 text-center text-red-500">Incorrect username or password.</p>}
         <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <label htmlFor="email" className="block text-sm font-medium text-gray-700">
