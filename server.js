@@ -70,7 +70,6 @@ await server.register(FastifyVite, {
 
 // Session configuration
 const sessionSecret = process.env.SECRET_KEY || crypto.randomBytes(32).toString('hex');
-const PASSWORD = process.env.PASSWORD || 'Enoch';
 
 const sessionConfig = {
   secret: sessionSecret,
@@ -142,18 +141,6 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-server.addHook('preHandler', (req, reply, done) => {
-  if (req.routerPath === '/login' || req.routerPath === '/signin') {
-    return done()
-  }
-
-  if (!req.session.password) {
-    reply.redirect('/login')
-  } else {
-    done()
-  }
-})
-
 server.get("/token", async (request, reply) => {
   logger.info("Token request received");
   try {
@@ -201,28 +188,14 @@ server.get("/api-env", async (request, reply) => {
 
 server.get('/clear-cookie', async (request, reply) => {
   logger.info("Clearing cookie");
-  for (const key in request.session) {
-    if (key === "password" || key === "cookie") {
-      continue;
-    }
-    delete request.session[key];
-  }
-  reply.send({ message: 'session chat history cleared.' });
+  await request.session.destroy();
+  reply
+    .clearCookie('sessionId', { path: '/' })
+    .send({ message: 'Cookie has been cleared' });
 });
 
 server.post("/api/test", async (request, reply) => {
   return await searchSimilar(request.body.message);
-});
-
-server.post('/signin', (req, reply) => {
-  const { email, password } = req.body;
-  console.log(`email: ${email} password:${password}`);
-  if (password === PASSWORD) {
-    req.session.password = PASSWORD; // 保存密码到 session
-    reply.redirect('/'); // 重定向到首页
-  } else {
-    reply.code(401).send('Incorrect password');
-  }
 });
 
 // Wait for Vite to be ready
